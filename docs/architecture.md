@@ -381,12 +381,12 @@ The current components are:
   `[Library]` move/go-to controls, deprecated `[Playlist]` encoder/previous/next
   controls, first-stopped loading, and Deck 1/2 `LoadSelectedTrack` plus
   `LoadSelectedTrackAndPlay`. Selection controls move through filtered rows and
-  keep the selected row visible; the first filtered row is selected
-  automatically. Successful touch or controller loading clears
-  `show_maximized_library` and returns to Performance without destroying Browse
-  state. Dynamic deck, preview-deck, and sampler load handlers remain deferred.
-  This QML observer is necessary because legacy library widget handlers are not
-  connected in QML application mode.
+  keep the selected row visible. Selection is established after the filtered
+  `DelegateModelGroup` updates and synchronizes URL, list index, and current
+  item. Loading never changes view controls; controller mappings decide whether
+  to remain in Browse or return to Performance. Dynamic deck, preview-deck, and
+  sampler load handlers remain deferred. This QML observer is necessary because
+  legacy library widget handlers are not connected in QML application mode.
 - `EffectRackView` and `SampleRackView`: empty page placeholders selected by the
   core-owned `[Skin],show_effectrack` and `[Skin],show_samplers` controls.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography

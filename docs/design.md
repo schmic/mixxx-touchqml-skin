@@ -287,10 +287,11 @@ query, sort, selected row, and scroll position without rebuilding the model.
   only one row remains open, and recycled rows reset to the closed position.
 - Loading uses `Player.loadTrackFromLocationUrl()` and does not rely on drag and
   drop, hover, right click, or a double-click gesture.
-- Standard controller and touch load actions load the selected track and return
-  to Performance. Library movement controls traverse filtered rows, choosing
-  the first or last row when no row is selected and keeping the new selection
-  visible. Browse state remains available for the next opening.
+- Standard controller and touch load actions only load the selected track; view
+  transitions remain the caller's responsibility. Library movement controls
+  traverse filtered rows, choosing the first or last row when no row is selected
+  and keeping URL, list index, current item, and visible position synchronized.
+  Browse state remains available for the next opening.
 - Double-tap is retained only as an optional shortcut for loading the selected
   track into Mixxx's next available deck.
 - A 48-pixel-high text input filters title, artist, genre, comment, and key with

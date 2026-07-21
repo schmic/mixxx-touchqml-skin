@@ -41,19 +41,14 @@ Rectangle {
             const searchableText = [track?.title, track?.artist, track?.genre, track?.comment, track?.keyText].map(value => String(value || "")).join(" ").toLocaleLowerCase();
             entry.inSearchResults = query.length === 0 || searchableText.includes(query);
         }
-        if (searchResultsGroup.count > 0) {
-            const firstEntry = searchResultsGroup.get(0);
-            root.selectedListIndex = 0;
-            root.selectedUrl = firstEntry.model.file_url;
-        }
         trackList.positionViewAtBeginning();
+        Qt.callLater(root.ensureSelection);
     }
     function loadUrlIntoDeck(url, group, play = false) {
         if (!url || url.toString().length === 0) {
             return false;
         }
         Mixxx.PlayerManager.getPlayer(group).loadTrackFromLocationUrl(url, play);
-        libraryViewControl.value = 0;
         return true;
     }
     function loadUrlIntoNextAvailableDeck(url, play = false) {
@@ -61,7 +56,6 @@ Rectangle {
             return false;
         }
         Mixxx.PlayerManager.loadLocationUrlIntoNextAvailableDeck(url, play);
-        libraryViewControl.value = 0;
         return true;
     }
     function loadSelectedIntoDeck(group, play = false) {
@@ -81,7 +75,28 @@ Rectangle {
         const entry = searchResultsGroup.get(nextIndex);
         root.selectedListIndex = nextIndex;
         root.selectedUrl = entry.model.file_url;
+        trackList.currentIndex = nextIndex;
         trackList.positionViewAtIndex(nextIndex, ListView.Contain);
+    }
+    function ensureSelection() {
+        const count = searchResultsGroup.count;
+        if (count === 0) {
+            root.selectedListIndex = -1;
+            root.selectedUrl = "";
+            trackList.currentIndex = -1;
+            return;
+        }
+        for (let i = 0; i < count; ++i) {
+            if (searchResultsGroup.get(i).model.file_url.toString() === root.selectedUrl.toString()) {
+                root.selectedListIndex = i;
+                trackList.currentIndex = i;
+                return;
+            }
+        }
+        const firstEntry = searchResultsGroup.get(0);
+        root.selectedListIndex = 0;
+        root.selectedUrl = firstEntry.model.file_url;
+        trackList.currentIndex = 0;
     }
     function activateSource(modelIndex, label) {
         if (root.openSwipeRow) {
@@ -89,6 +104,7 @@ Rectangle {
         }
         root.selectedUrl = "";
         root.selectedListIndex = -1;
+        trackList.currentIndex = -1;
         root.sourceModel.activate(modelIndex);
         root.trackModel = root.sourceModel.tracklist;
         if (root.sortColumn >= 0) {
@@ -104,6 +120,9 @@ Rectangle {
         }
         root.selectedUrl = url;
         root.selectedListIndex = row.index;
+        trackList.currentIndex = row.index;
+        focusedWidgetControl.value = root.libraryViewFocus;
+        trackList.forceActiveFocus();
     }
     function sortByColumn(column) {
         if (!root.trackModel) {
@@ -122,12 +141,14 @@ Rectangle {
         for (let i = 0; i < searchResultsGroup.count; ++i) {
             if (searchResultsGroup.get(i).model.file_url.toString() === root.selectedUrl.toString()) {
                 root.selectedListIndex = i;
+                trackList.currentIndex = i;
                 trackList.positionViewAtIndex(i, ListView.Contain);
                 return;
             }
         }
         root.selectedListIndex = -1;
         root.selectedUrl = "";
+        trackList.currentIndex = -1;
     }
 
     color: TouchTheme.libraryBackground
@@ -188,6 +209,8 @@ Rectangle {
         onValueChanged: value => {
             if (value > 0) {
                 focusedWidgetControl.value = root.libraryViewFocus;
+                trackList.forceActiveFocus();
+                Qt.callLater(root.ensureSelection);
             }
         }
     }
@@ -255,7 +278,8 @@ Rectangle {
         key: "MoveVertical"
 
         onValueChanged: value => {
-            if (value !== 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value !== 0 && libraryViewControl.value > 0) {
+                focusedWidgetControl.value = root.libraryViewFocus;
                 root.moveSelection(value);
             }
         }
@@ -344,6 +368,13 @@ Rectangle {
         }
 
         target: filteredTrackModel.items
+    }
+    Connections {
+        function onCountChanged() {
+            Qt.callLater(root.ensureSelection);
+        }
+
+        target: searchResultsGroup
     }
     DelegateModel {
         id: filteredTrackModel
@@ -561,6 +592,8 @@ Rectangle {
         anchors.top: columnHeader.bottom
         boundsBehavior: Flickable.StopAtBounds
         clip: true
+        currentIndex: -1
+        focus: libraryViewControl.value > 0
         model: filteredTrackModel
         reuseItems: true
 
