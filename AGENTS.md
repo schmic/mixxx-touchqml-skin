@@ -11,7 +11,7 @@ The current Mixxx source is to be found in ../mixxx/
 - Do not modify Mixxx C++ sources or tests for skin-only work.
 - Do not configure, build, or run Mixxx unless the user explicitly requests it.
 - Run static lint from repository root with
-  `qmllint *.qml Controls/*.qml Deck/*.qml Library/*.qml Performance/*.qml Theme/*.qml`.
+  `qmllint *.qml Controls/*.qml Deck/*.qml Effects/*.qml Library/*.qml Performance/*.qml Samples/*.qml Theme/*.qml`.
 - There is no repo-local build, test suite, CI, task runner, or formatter config.
   Upstream `tools/qmlformat.py` depends on a Mixxx checkout and its
   `.qmlformat.ini`; do not replace it with an unconfigured `qmlformat -i` run.
@@ -26,6 +26,8 @@ The current Mixxx source is to be found in ../mixxx/
   navigation/status header, keyboard shortcuts, and replaceable page loader.
 - `Performance/PerformanceView.qml` owns the overview and stacked scrolling
   waveforms; `Library/BrowseView.qml` is the alternate touch browser page.
+- `Effects/EffectRackView.qml` and `Samples/SampleRackView.qml` are empty rack
+  pages selected by core-owned Mixxx skin controls.
 - The browser filtering uses
   `DelegateModel` groups, and pooled `TrackRow` delegates must reset swipe state.
 
@@ -54,13 +56,13 @@ The current Mixxx source is to be found in ../mixxx/
   actions at 36 pixels and waveform hotcue strips at 32 pixels are explicit
   height exceptions.
 - Preserve performance top-stack heights: navigation 48, deck status 72,
-  overview 88. Browse replaces everything below DeckStatus.
+  overview 88. Browse, Touch FX, and Samples replace everything below DeckStatus.
 - Preserve full-width 32-pixel hotcue strips: Deck 1 above its waveform and Deck
   2 below its waveform, each separated from the waveform by 2 pixels. Use eight
-  buttons with 2-pixel gaps, fixed index colors on 2-pixel bottom stripes for set
-  cues, neutral stripes for empty slots, and no outer padding. Applying the fixed
-  palette updates stored Mixxx cue colors. Hotcue activation must reset on
-  release and component destruction.
+  buttons with 2-pixel gaps, stored Mixxx cue colors on 2-pixel bottom stripes
+  for set cues, neutral stripes for empty slots, and no outer padding. Never
+  rewrite cue colors while rendering. Hotcue activation must reset on release
+  and component destruction.
 - Map Deck 1 to EffectUnit 1 and Deck 2 to EffectUnit 2. Preserve existing
   routing and enabled state while selecting a new effect or Quick Effect preset.
   Keep each deck's four effect buttons contiguous with no gaps or outer padding.

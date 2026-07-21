@@ -286,11 +286,13 @@ even widths.
 
 The current components are:
 
-- `NavigationBar`: Browse, Touch FX, recording, battery, and clock presentation.
+- `NavigationBar`: Browse, Touch FX, Samples, recording, battery, and clock
+  presentation.
   Its original monochrome SVG assets occupy consistent 24-pixel icon boxes so
-  icons and labels share a visual centerline. Browse and Touch FX use existing
-  core-owned `[Skin]` controls. Search lives inside the browser rather than as a
-  global navigation destination.
+  icons and labels share a visual centerline. Browse, Touch FX, and Samples use
+  existing core-owned `[Skin]` controls and load mutually exclusive pages below
+  DeckStatus. Touch FX and Samples are currently empty rack placeholders. Search
+  lives inside the browser rather than as a global navigation destination.
 - `DeckStatus`: a 64-pixel cover or neutral fallback centered in a 72-pixel
   slot, separate title/artist lines, loop and beat-jump size, sync/leader state,
   pitch, rate range, key, BPM, and remaining time. Remaining time, key, and BPM
@@ -299,13 +301,12 @@ The current components are:
   in the flat lower group. Original SVG icons are 18 pixels. Loop triggers
   `reloop_toggle`, while Beat Jump triggers
   `beatjump_forward`. A Sync tap triggers the momentary `beatsync` control
-  without latching. A continuous two-second hold sets explicit-leader state
-  through `sync_mode` when the partner deck has no leader; when the partner is
-  already Lead, it instead enables `sync_enabled`
-  on the held deck so that deck becomes a synchronized follower. Explicit mode
-  is necessary here because a `sync_leader` request currently creates only a
-  soft leader, which Mixxx may re-elect when a stopped follower joins Sync.
-  Releasing after either hold action does not also trigger Beat Sync.
+  without latching. A continuous two-second hold toggles the standard
+  `sync_leader` control when the partner deck has no leader; when the partner is
+  already Lead, it instead enables `sync_enabled` on the held deck so that deck
+  becomes a synchronized follower. Releasing after either hold action does not
+  also trigger Beat Sync. Remaining time reads `time_remaining` and displays
+  whole `mm:ss` values.
 - `DeckOverview`: one clipped RGB full-track waveform per deck, showing only
   the upper/left channel with current position and cue/loop markers supplied by
   `Mixxx.Controls.WaveformOverview`. Each active hotcue marker gains a small
@@ -330,12 +331,10 @@ The current components are:
 - `DeckHotcueGrid`: a full-width 32-pixel strip of eight equal buttons. Deck 1's
   strip sits 2 pixels above its waveform; Deck 2's sits 2 pixels below. Buttons
   have 2-pixel gaps, no outer padding or outlines, a neutral dark-gray
-  background, and a 2-pixel bottom stripe. Set cues show their fixed index color;
-  empty slots show a neutral gray stripe. Labels are `CUE N` or `LOOP N`, based
-  on `hotcuesModel`; empty slots show `CUE N`. The palette is yellow, orange,
-  lila, red, dark green, light green, turquoise, and blue. It is written through
-  each `hotcue_N_color` control for existing and newly created cues, updating
-  stored track metadata and waveform marker colors. Buttons hold
+  background, and a 2-pixel bottom stripe. Set cues show their stored Mixxx cue
+  color, matching overview and scrolling-waveform markers; empty slots show a
+  neutral gray stripe. Labels are `CUE N` or `LOOP N`, based on `hotcuesModel`;
+  empty slots show `CUE N`. Rendering never writes `hotcue_N_color`. Buttons hold
   `hotcue_N_activate` while pressed and reset it on release, disable, or page
   destruction. There is no touch clear gesture.
 - `EffectRow`: a fixed 48-pixel center-split row 8 pixels below Deck 2's hotcue
@@ -369,13 +368,17 @@ The current components are:
   contains All Tracks only.
 - Controller browse/load bridge: controller mappings open Browse with the
   core-owned `[Skin],show_maximized_library` control. While loaded, `BrowseView`
-  observes core `[Playlist],SelectPrevTrack`/`SelectNextTrack` and Deck 1/2
-  `LoadSelectedTrack` controls directly. Selection controls move through the
-  filtered rows and keep the selected row visible; the first filtered row is
-  selected automatically. A load control loads the selected URL into its deck
-  and returns to Performance; an empty result leaves Browse open. This QML
-  observer is necessary because the legacy library widget handlers for these
-  controls are not connected in QML application mode.
+  mirrors the fixed two-deck portion of Mixxx's QML library control bridge:
+  `[Library]` move/go-to controls, deprecated `[Playlist]` encoder/previous/next
+  controls, first-stopped loading, and Deck 1/2 `LoadSelectedTrack` plus
+  `LoadSelectedTrackAndPlay`. Selection controls move through filtered rows and
+  keep the selected row visible; the first filtered row is selected
+  automatically. Loading does not change the active page; view controls such as
+  the LC6000 Back mapping return to Performance. Dynamic deck, preview-deck, and
+  sampler load handlers remain deferred. This QML observer is necessary because
+  legacy library widget handlers are not connected in QML application mode.
+- `EffectRackView` and `SampleRackView`: empty page placeholders selected by the
+  core-owned `[Skin],show_effectrack` and `[Skin],show_samplers` controls.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography
   shared by the first slice.
 
@@ -408,11 +411,12 @@ Implemented and usable for development:
   deck controls, mixer controls, waveforms, overview/spinny/cover support, and
   the embedded legacy library.
 - TouchQML has a persistent navigation/deck-status header, replaceable
-  Performance/Browse page host, fixed-height two-deck overview, adaptive stacked
-  scrolling waveforms, two touch-operated eight-hotcue strips, per-deck standard
-  and Quick Effect buttons with hold selectors, centralized touch/theme metrics,
-  controller-mappable view controls, deck-specific browse/load triggers, and a
-  touch-native all-tracks browser with explicit load actions.
+  Performance/Browse/Touch FX/Samples page host, fixed-height two-deck overview,
+  adaptive stacked scrolling waveforms, two touch-operated eight-hotcue strips,
+  per-deck standard and Quick Effect buttons with hold selectors, centralized
+  touch/theme metrics, controller-mappable view controls, a standard fixed
+  two-deck library control bridge, and a touch-native all-tracks browser with
+  explicit load actions.
 - QML can create and persist its own `[Skin]` controls; focused unit tests cover
   normal creation, defaults, ordering, duplicates, invalid groups, and cleanup.
 
@@ -440,7 +444,7 @@ Still experimental or incomplete:
   minimal skin.
 - TouchQML is still an early slice: Browse has a source-picker overlay, but the
   current Mixxx QML API exposes only All Tracks rather than playlists, crates,
-  and other sources. Touch FX still has no page, and transport, mixer,
+  and other sources. Touch FX and Samples pages are empty, and transport, mixer,
   additional pad modes, and the rest of the performance view are still absent.
 - Some scene-graph waveform renderer combinations remain unsupported; see the
   FIXMEs in `src/qml/qmlwaveformrenderer.cpp` and

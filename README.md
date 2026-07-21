@@ -7,16 +7,17 @@ TouchQML currently provides:
 
 - Fixed navigation, deck status, and full-track overview rows
 - Stacked RGB scrolling waveforms with beat, cue, hotcue, and loop markers
-- Full-width 1 x 8 hotcue strips around the waveforms with indexed cue colors
+- Full-width 1 x 8 hotcue strips using stored Mixxx cue colors
 - Per-deck standard and Quick Effect toggles with hold-to-select menus
+- Empty Touch FX and Samples rack pages ready for later controls
 - Live metadata, BPM, pitch, key, time, loop, beat-jump, and sync state
 - Touch-native library browsing, filtering, and load-to-deck actions
 - Original dark theme and SVG icons
 - Keyboard shortcuts for Preferences (`Ctrl+P`) and Quit (`Ctrl+Q`)
 
 The skin remains a developer preview. Transport, mixer, additional performance
-pad modes, detailed effect controls, and source/playlist navigation are
-incomplete.
+pad modes, rack contents, detailed effect controls, and source/playlist
+navigation are incomplete.
 
 ## Screenshots
 

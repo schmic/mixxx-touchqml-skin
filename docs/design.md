@@ -188,8 +188,8 @@ to the right-deck color at the same `deckSplitX` coordinate.
 ### `NavigationBar`
 
 - Fixed height: 48 logical pixels, including its bottom accent rule.
-- Left-aligned primary destinations: Browse and Touch FX or the closest
-  functionality supported by current Mixxx APIs.
+- Left-aligned primary destinations: Browse, Touch FX, and Samples using their
+  existing Mixxx view controls.
 - Right-aligned global status/actions: recording state, other available status
   indicators, and clock. Unsupported status indicators should be omitted rather
   than mocked.
@@ -215,13 +215,11 @@ to the right-deck color at the same `deckSplitX` coordinate.
 - Text-only metadata is not a touch target. Compact Loop, Beat Jump, and Sync
   controls use the full 36-pixel row height.
 - Tapping Sync triggers the momentary `beatsync` control and must not latch
-  Sync. Holding it continuously for 2 seconds sets the explicit-leader
-  `sync_mode` if the partner deck has no leader. If the partner is already
-  Lead, the same hold enables `sync_enabled` on the held deck, preserving the
-  partner as Lead and making the held deck a follower. Do not use
-  `sync_leader` for the Lead hold because it currently requests only a soft
-  leader that may be re-elected when a stopped follower joins Sync. Releasing
-  after either hold action must not also trigger Beat Sync.
+  Sync. Holding it continuously for 2 seconds toggles `sync_leader` if the
+  partner deck has no leader. If the partner is already Lead, the same hold
+  enables `sync_enabled` on the held deck, preserving the partner as Lead and
+  making the held deck a follower. Releasing after either hold action must not
+  also trigger Beat Sync.
 - Scale the combined Pitch/Range cell from 88 × 36 to 96 × 36, and Loop, Beat
   Jump, and Sync/Lead from 56 × 36 to 64 × 36. Use 18-pixel icons and open
   spacing instead of cell borders or full-height dividers.
@@ -287,12 +285,10 @@ performance-only overview and scrolling waveforms are unloaded while browsing.
   only one row remains open, and recycled rows reset to the closed position.
 - Loading uses `Player.loadTrackFromLocationUrl()` and does not rely on drag and
   drop, hover, right click, or a double-click gesture.
-- Deck-specific controller triggers open Browse when Performance is visible.
-  When Browse is visible, the same trigger loads its selected track into that
-  deck and returns to Performance. If no track is selected, Browse remains
-  visible. Controller up/down triggers move selection through filtered rows,
-  choosing the first or last row when no row is selected and keeping the new
-  selection visible.
+- Standard controller load controls load the selected track without changing
+  the active page. Library movement controls traverse filtered rows, choosing
+  the first or last row when no row is selected and keeping the new selection
+  visible. View controls remain responsible for returning to Performance.
 - Double-tap is retained only as an optional shortcut for loading the selected
   track into Mixxx's next available deck.
 - A 48-pixel-high text input filters title, artist, genre, comment, and key with
@@ -343,13 +339,10 @@ waveform.
   strips remain distinct from the performance-page background.
 - Each button shows one centered label: `LOOP N` for a saved loop or `CUE N` for
   any other or empty slot. Custom Mixxx cue labels are not shown.
-- Show the fixed index color only as a 2-pixel bottom stripe on set cues: yellow
-  `#F8D200`, orange `#F8A030`, lila `#AF00CC`, red `#C50A08`, dark green
-  `#008800`, light green `#32BE44`, turquoise `#42D4F4`, and blue `#0044FF`.
-  Empty slots use a neutral gray bottom stripe.
-- Write each fixed color to `hotcue_N_color` whenever its slot contains a cue.
-  This deliberately replaces stored colors on loaded tracks and newly created
-  cues so waveform markers and other Mixxx views use the same indexed palette.
+- Show each set cue's stored Mixxx color as a 2-pixel bottom stripe. This keeps
+  the strip, overview pointers, and scrolling-waveform marks on the same Mixxx
+  palette. Empty slots use a neutral gray stripe. Rendering must never write
+  `hotcue_N_color`.
 - Hold `hotcue_N_activate` at 1 while pressed and restore it to 0 on release,
   disable, or page destruction. This preserves Mixxx's set/activate behavior and
   prevents a stuck control if the page loader switches during a touch.

@@ -30,7 +30,6 @@ Item {
                 deckLoaded: root.player?.isLoaded ?? false
                 group: root.group
                 hotcueNumber: index + 1
-                slotColor: TouchTheme.hotcueSlotColors[index]
             }
         }
     }

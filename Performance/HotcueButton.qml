@@ -23,17 +23,11 @@ Rectangle {
     required property bool deckLoaded
     required property string group
     required property int hotcueNumber
+    readonly property color hotcueColor: colorControl.value >= 0 ?
+        "#" + Math.round(colorControl.value).toString(16).padStart(6, "0").slice(-6) :
+        TouchTheme.border
     readonly property bool isSet: statusControl.value > 0
-    required property color slotColor
-    readonly property int slotColorValue: parseInt(slotColor.toString().slice(-6), 16)
     property int labelRevision: 0
-
-    function enforceSlotColor() {
-        if (root.isSet && colorControl.initialized &&
-                Math.round(colorControl.value) !== root.slotColorValue) {
-            colorControl.value = root.slotColorValue;
-        }
-    }
 
     color: hotcueTapHandler.pressed ? TouchTheme.controlPressedBackground : TouchTheme.controlBackground
     enabled: deckLoaded
@@ -61,18 +55,12 @@ Rectangle {
 
         group: root.group
         key: "hotcue_" + root.hotcueNumber + "_color"
-
-        onInitializedChanged: root.enforceSlotColor()
-        onValueChanged: root.enforceSlotColor()
     }
     Mixxx.ControlProxy {
         id: statusControl
 
         group: root.group
         key: "hotcue_" + root.hotcueNumber + "_status"
-
-        onInitializedChanged: root.enforceSlotColor()
-        onValueChanged: root.enforceSlotColor()
     }
     Connections {
         function onModelReset() {
@@ -85,7 +73,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        color: root.isSet ? root.slotColor : TouchTheme.border
+        color: root.isSet ? root.hotcueColor : TouchTheme.border
         height: TouchTheme.hotcueColorStripeHeight
         z: 2
     }
@@ -111,9 +99,6 @@ Rectangle {
 
         onPressedChanged: {
             activateControl.value = pressed ? 1 : 0;
-            if (pressed) {
-                root.enforceSlotColor();
-            }
         }
     }
 }

@@ -1,6 +1,8 @@
 import "Deck" as Deck
+import "Effects" as Effects
 import "Library" as Library
 import "Performance" as Performance
+import "Samples" as Samples
 import "Theme"
 import Mixxx 1.0 as Mixxx
 import QtQuick
@@ -84,6 +86,18 @@ ApplicationWindow {
         group: "[Skin]"
         key: "show_maximized_library"
     }
+    Mixxx.ControlProxy {
+        id: effectsViewControl
+
+        group: "[Skin]"
+        key: "show_effectrack"
+    }
+    Mixxx.ControlProxy {
+        id: samplesViewControl
+
+        group: "[Skin]"
+        key: "show_samplers"
+    }
     Column {
         anchors.fill: parent
         spacing: 0
@@ -102,7 +116,9 @@ ApplicationWindow {
 
             Loader {
                 anchors.fill: parent
-                sourceComponent: libraryViewControl.value > 0 ? browsePage : performancePage
+                sourceComponent: libraryViewControl.value > 0 ? browsePage :
+                    effectsViewControl.value > 0 ? effectRackPage :
+                    samplesViewControl.value > 0 ? sampleRackPage : performancePage
             }
         }
     }
@@ -117,5 +133,15 @@ ApplicationWindow {
         id: browsePage
 
         Library.BrowseView {}
+    }
+    Component {
+        id: effectRackPage
+
+        Effects.EffectRackView {}
+    }
+    Component {
+        id: sampleRackPage
+
+        Samples.SampleRackView {}
     }
 }

@@ -14,6 +14,7 @@ Rectangle {
     readonly property int durationColumnWidth: 52
     readonly property int genreColumnWidth: 120
     readonly property int keyColumnWidth: 42
+    readonly property int libraryViewFocus: 3
     property var openSwipeRow: null
     readonly property int ratingColumnWidth: 72
     property int selectedListIndex: -1
@@ -45,21 +46,22 @@ Rectangle {
         }
         trackList.positionViewAtBeginning();
     }
-    function loadUrlIntoDeck(url, group) {
+    function loadUrlIntoDeck(url, group, play = false) {
         if (!url || url.toString().length === 0) {
             return false;
         }
-        Mixxx.PlayerManager.getPlayer(group).loadTrackFromLocationUrl(url, false);
+        Mixxx.PlayerManager.getPlayer(group).loadTrackFromLocationUrl(url, play);
         return true;
     }
-    function loadUrlIntoNextAvailableDeck(url) {
+    function loadUrlIntoNextAvailableDeck(url, play = false) {
         if (!url || url.toString().length === 0) {
-            return;
+            return false;
         }
-        Mixxx.PlayerManager.loadLocationUrlIntoNextAvailableDeck(url, false);
+        Mixxx.PlayerManager.loadLocationUrlIntoNextAvailableDeck(url, play);
+        return true;
     }
-    function loadSelectedIntoDeck(group) {
-        return root.loadUrlIntoDeck(root.selectedUrl, group);
+    function loadSelectedIntoDeck(group, play = false) {
+        return root.loadUrlIntoDeck(root.selectedUrl, group, play);
     }
     function moveSelection(direction) {
         const count = searchResultsGroup.count;
@@ -102,6 +104,7 @@ Rectangle {
     Component.onCompleted: {
         root.sourceModel = sourceTree.sidebar();
         root.activateSource(root.sourceModel.index(0, 0), qsTr("All Tracks"));
+        focusedWidgetControl.value = root.libraryViewFocus;
     }
 
     Mixxx.LibrarySourceTree {
@@ -124,10 +127,41 @@ Rectangle {
         }
     }
     Mixxx.ControlProxy {
-        id: libraryViewControl
+        id: focusedWidgetControl
 
-        group: "[Skin]"
-        key: "show_maximized_library"
+        group: "[Library]"
+        key: "focused_widget"
+    }
+    Mixxx.ControlProxy {
+        group: "[Library]"
+        key: "GoToItem"
+
+        onValueChanged: value => {
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.loadUrlIntoNextAvailableDeck(root.selectedUrl);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Playlist]"
+        key: "LoadSelectedIntoFirstStopped"
+
+        onValueChanged: value => {
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.loadUrlIntoNextAvailableDeck(root.selectedUrl);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Playlist]"
+        key: "SelectTrackKnob"
+
+        onValueChanged: value => {
+            if (value !== 0) {
+                focusedWidgetControl.value = root.libraryViewFocus;
+                root.moveSelection(value);
+            }
+        }
     }
     Mixxx.ControlProxy {
         group: "[Playlist]"
@@ -135,6 +169,7 @@ Rectangle {
 
         onValueChanged: value => {
             if (value > 0) {
+                focusedWidgetControl.value = root.libraryViewFocus;
                 root.moveSelection(-1);
             }
         }
@@ -145,6 +180,37 @@ Rectangle {
 
         onValueChanged: value => {
             if (value > 0) {
+                focusedWidgetControl.value = root.libraryViewFocus;
+                root.moveSelection(1);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Library]"
+        key: "MoveVertical"
+
+        onValueChanged: value => {
+            if (value !== 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.moveSelection(value);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Library]"
+        key: "MoveUp"
+
+        onValueChanged: value => {
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.moveSelection(-1);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Library]"
+        key: "MoveDown"
+
+        onValueChanged: value => {
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.moveSelection(1);
             }
         }
@@ -154,8 +220,8 @@ Rectangle {
         key: "LoadSelectedTrack"
 
         onValueChanged: value => {
-            if (value > 0 && root.loadSelectedIntoDeck("[Channel1]")) {
-                libraryViewControl.value = 0;
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.loadSelectedIntoDeck("[Channel1]");
             }
         }
     }
@@ -164,8 +230,28 @@ Rectangle {
         key: "LoadSelectedTrack"
 
         onValueChanged: value => {
-            if (value > 0 && root.loadSelectedIntoDeck("[Channel2]")) {
-                libraryViewControl.value = 0;
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.loadSelectedIntoDeck("[Channel2]");
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Channel1]"
+        key: "LoadSelectedTrackAndPlay"
+
+        onValueChanged: value => {
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.loadSelectedIntoDeck("[Channel1]", true);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Channel2]"
+        key: "LoadSelectedTrackAndPlay"
+
+        onValueChanged: value => {
+            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+                root.loadSelectedIntoDeck("[Channel2]", true);
             }
         }
     }

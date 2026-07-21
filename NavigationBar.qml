@@ -24,6 +24,12 @@ Item {
         key: "show_effectrack"
     }
     Mixxx.ControlProxy {
+        id: samplesViewControl
+
+        group: "[Skin]"
+        key: "show_samplers"
+    }
+    Mixxx.ControlProxy {
         id: recordingStatusControl
 
         group: "[Recording]"
@@ -60,6 +66,7 @@ Item {
             onTriggered: {
                 const opening = libraryViewControl.value <= 0;
                 effectsViewControl.value = 0;
+                samplesViewControl.value = 0;
                 libraryViewControl.value = opening ? 1 : 0;
             }
         }
@@ -73,7 +80,22 @@ Item {
             onTriggered: {
                 const opening = effectsViewControl.value <= 0;
                 libraryViewControl.value = 0;
+                samplesViewControl.value = 0;
                 effectsViewControl.value = opening ? 1 : 0;
+            }
+        }
+        Controls.NavigationButton {
+            active: samplesViewControl.value > 0
+            height: parent.height
+            iconSource: Qt.resolvedUrl("Icons/samples.svg")
+            label: qsTr("Samples")
+            width: 122
+
+            onTriggered: {
+                const opening = samplesViewControl.value <= 0;
+                libraryViewControl.value = 0;
+                effectsViewControl.value = 0;
+                samplesViewControl.value = opening ? 1 : 0;
             }
         }
     }

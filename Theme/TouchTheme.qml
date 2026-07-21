@@ -31,16 +31,6 @@ QtObject {
     readonly property int hotcueButtonSpacing: 2
     readonly property int hotcueColorStripeHeight: 2
     readonly property int hotcueRowHeight: 32
-    readonly property var hotcueSlotColors: [
-        "#f8d200",
-        "#f8a030",
-        "#af00cc",
-        "#c50a08",
-        "#008800",
-        "#32be44",
-        "#42d4f4",
-        "#0044ff"
-    ]
     readonly property int hotcueWaveformSpacing: 2
     readonly property color keyText: "#ffd19a"
     readonly property color libraryBackground: "#0c1011"

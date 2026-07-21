@@ -23,7 +23,6 @@ Rectangle {
     readonly property bool loaded: player?.isLoaded ?? false
     readonly property var player: Mixxx.PlayerManager.getPlayer(root.group)
     readonly property real statusRightMargin: TouchTheme.deckStatusRightMargin * root.layoutProgress
-    readonly property int syncModeExplicitLeader: 3
     required property string syncPartnerGroup
 
     function beatSizeText(value) {
@@ -36,10 +35,10 @@ Rectangle {
         return Math.abs(value - Math.round(value)) < 0.001 ? Math.round(value).toString() : value.toFixed(1);
     }
     function remainingTimeText() {
-        if (!root.loaded || durationControl.value <= 0) {
-            return "--:--.-";
+        if (!root.loaded || timeRemainingControl.value < 0) {
+            return "--:--";
         }
-        const remaining = Math.max(0, durationControl.value * (1 - playPositionControl.value));
+        const remaining = Math.max(0, Math.floor(timeRemainingControl.value));
         const minutes = Math.floor(remaining / 60);
         const seconds = Math.floor(remaining % 60);
         return "-" + minutes + ":" + seconds.toString().padStart(2, "0");
@@ -79,16 +78,10 @@ Rectangle {
         key: "key_notation"
     }
     Mixxx.ControlProxy {
-        id: durationControl
+        id: timeRemainingControl
 
         group: root.group
-        key: "duration"
-    }
-    Mixxx.ControlProxy {
-        id: playPositionControl
-
-        group: root.group
-        key: "playposition"
+        key: "time_remaining"
     }
     Mixxx.ControlProxy {
         id: loopEnabledControl
@@ -137,12 +130,6 @@ Rectangle {
 
         group: root.group
         key: "sync_leader"
-    }
-    Mixxx.ControlProxy {
-        id: syncModeControl
-
-        group: root.group
-        key: "sync_mode"
     }
     Mixxx.ControlProxy {
         id: partnerSyncLeaderControl
@@ -306,7 +293,7 @@ Rectangle {
                         if (partnerSyncLeaderControl.value > 0) {
                             syncEnabledControl.value = 1;
                         } else {
-                            syncModeControl.value = root.syncModeExplicitLeader;
+                            syncLeaderControl.value = syncLeaderControl.value > 0 ? 0 : 1;
                         }
                     }
                 }
