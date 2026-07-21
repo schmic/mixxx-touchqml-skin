@@ -384,11 +384,12 @@ The current components are:
   keep the selected row visible. Selection is established after the filtered
   `DelegateModelGroup` updates and synchronizes URL, list index, and current
   item. Loading never changes view controls; controller mappings decide whether
-  to remain in Browse or return to Performance. Deck load handlers remain active
-  while Browse is hidden so a controller-triggered page transition cannot race
-  the load event. Dynamic deck, preview-deck, and sampler load handlers remain
-  deferred. This QML observer is necessary because legacy library widget
-  handlers are not connected in QML application mode.
+  to remain in Browse or return to Performance. Deck load handlers respond to
+  every positive load trigger without focus or visibility gating, so a
+  controller-triggered page transition cannot race the load event. Dynamic
+  deck, preview-deck, and sampler load handlers remain deferred. This QML
+  observer is necessary because legacy library widget handlers are not connected
+  in QML application mode.
 - `EffectRackView` and `SampleRackView`: empty page placeholders selected by the
   core-owned `[Skin],show_effectrack` and `[Skin],show_samplers` controls.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography

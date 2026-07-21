@@ -309,7 +309,7 @@ Rectangle {
         key: "LoadSelectedTrack"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0) {
                 root.loadSelectedIntoDeck("[Channel1]");
             }
         }
@@ -319,7 +319,7 @@ Rectangle {
         key: "LoadSelectedTrack"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0) {
                 root.loadSelectedIntoDeck("[Channel2]");
             }
         }
@@ -329,7 +329,7 @@ Rectangle {
         key: "LoadSelectedTrackAndPlay"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0) {
                 root.loadSelectedIntoDeck("[Channel1]", true);
             }
         }
@@ -339,7 +339,7 @@ Rectangle {
         key: "LoadSelectedTrackAndPlay"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0) {
                 root.loadSelectedIntoDeck("[Channel2]", true);
             }
         }
