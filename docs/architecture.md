@@ -374,8 +374,11 @@ The current components are:
   deck and return to Performance. An empty selection leaves Browse open. The
   non-persistent `[Skin],touchqml_controller_api_version` control lets mappings
   detect this skin-specific API without replacing their behavior under other
-  skins. Root ownership keeps all three controls available while page loading
-  destroys and recreates `BrowseView`.
+  skins. Version 2 also provides root-owned
+  `[Skin],touchqml_library_move_up`/`touchqml_library_move_down` triggers. They
+  move the touch-native browser selection through its filtered rows and scroll
+  the selected row into view. Root ownership keeps all controls available while
+  page loading destroys and recreates `BrowseView`.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography
   shared by the first slice.
 

@@ -66,7 +66,7 @@ ApplicationWindow {
         persist: true
     }
     Mixxx.SkinControlCreator {
-        defaultValue: 1
+        defaultValue: 2
         group: "[Skin]"
         key: "touchqml_controller_api_version"
     }
@@ -79,6 +79,16 @@ ApplicationWindow {
         buttonMode: Mixxx.SkinControlCreator.Trigger
         group: "[Skin]"
         key: "touchqml_browse_or_load_deck2"
+    }
+    Mixxx.SkinControlCreator {
+        buttonMode: Mixxx.SkinControlCreator.Trigger
+        group: "[Skin]"
+        key: "touchqml_library_move_up"
+    }
+    Mixxx.SkinControlCreator {
+        buttonMode: Mixxx.SkinControlCreator.Trigger
+        group: "[Skin]"
+        key: "touchqml_library_move_down"
     }
     Mixxx.SkinControlCreator {
         defaultValue: 1024
@@ -133,6 +143,26 @@ ApplicationWindow {
         onValueChanged: value => {
             if (value > 0) {
                 root.browseOrLoad("[Channel2]");
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Skin]"
+        key: "touchqml_library_move_up"
+
+        onValueChanged: value => {
+            if (value > 0 && libraryViewControl.value > 0) {
+                pageLoader.item?.moveSelection(-1);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Skin]"
+        key: "touchqml_library_move_down"
+
+        onValueChanged: value => {
+            if (value > 0 && libraryViewControl.value > 0) {
+                pageLoader.item?.moveSelection(1);
             }
         }
     }

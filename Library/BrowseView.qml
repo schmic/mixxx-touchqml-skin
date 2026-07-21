@@ -16,6 +16,7 @@ Rectangle {
     readonly property int keyColumnWidth: 42
     property var openSwipeRow: null
     readonly property int ratingColumnWidth: 72
+    property int selectedListIndex: -1
     property string selectedSourceLabel: qsTr("All Tracks")
     property url selectedUrl
     property var sourceModel: null
@@ -29,6 +30,7 @@ Rectangle {
             root.openSwipeRow.closeMenu();
         }
         root.selectedUrl = "";
+        root.selectedListIndex = -1;
         const query = searchField.text.trim().toLocaleLowerCase();
         for (let i = filteredTrackModel.items.count - 1; i >= 0; --i) {
             const entry = filteredTrackModel.items.get(i);
@@ -54,11 +56,28 @@ Rectangle {
     function loadSelectedIntoDeck(group) {
         return root.loadUrlIntoDeck(root.selectedUrl, group);
     }
+    function moveSelection(direction) {
+        const count = searchResultsGroup.count;
+        if (count === 0) {
+            return;
+        }
+        let nextIndex = root.selectedListIndex;
+        if (nextIndex < 0) {
+            nextIndex = direction > 0 ? 0 : count - 1;
+        } else {
+            nextIndex = Math.max(0, Math.min(count - 1, nextIndex + direction));
+        }
+        const entry = searchResultsGroup.get(nextIndex);
+        root.selectedListIndex = nextIndex;
+        root.selectedUrl = entry.model.file_url;
+        trackList.positionViewAtIndex(nextIndex, ListView.Contain);
+    }
     function activateSource(modelIndex, label) {
         if (root.openSwipeRow) {
             root.openSwipeRow.closeMenu();
         }
         root.selectedUrl = "";
+        root.selectedListIndex = -1;
         root.sourceModel.activate(modelIndex);
         root.trackModel = root.sourceModel.tracklist;
         root.selectedSourceLabel = label;
@@ -70,6 +89,7 @@ Rectangle {
             root.openSwipeRow.closeMenu();
         }
         root.selectedUrl = url;
+        root.selectedListIndex = row.index;
     }
 
     color: TouchTheme.libraryBackground
@@ -156,6 +176,8 @@ Rectangle {
             onSelectRequested: row => root.selectTrack(file_url, row)
         }
         groups: DelegateModelGroup {
+            id: searchResultsGroup
+
             includeByDefault: true
             name: "searchResults"
         }

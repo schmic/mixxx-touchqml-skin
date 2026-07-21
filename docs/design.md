@@ -290,7 +290,9 @@ performance-only overview and scrolling waveforms are unloaded while browsing.
 - Deck-specific controller triggers open Browse when Performance is visible.
   When Browse is visible, the same trigger loads its selected track into that
   deck and returns to Performance. If no track is selected, Browse remains
-  visible.
+  visible. Controller up/down triggers move selection through filtered rows,
+  choosing the first or last row when no row is selected and keeping the new
+  selection visible.
 - Double-tap is retained only as an optional shortcut for loading the selected
   track into Mixxx's next available deck.
 - A 48-pixel-high text input filters title, artist, genre, comment, and key with
