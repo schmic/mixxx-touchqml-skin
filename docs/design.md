@@ -287,13 +287,19 @@ performance-only overview and scrolling waveforms are unloaded while browsing.
   only one row remains open, and recycled rows reset to the closed position.
 - Loading uses `Player.loadTrackFromLocationUrl()` and does not rely on drag and
   drop, hover, right click, or a double-click gesture.
+- Deck-specific controller triggers open Browse when Performance is visible.
+  When Browse is visible, the same trigger loads its selected track into that
+  deck and returns to Performance. If no track is selected, Browse remains
+  visible.
 - Double-tap is retained only as an optional shortcut for loading the selected
   track into Mixxx's next available deck.
 - A 48-pixel-high text input filters title, artist, genre, comment, and key with
   a short debounce. It replaces both the global Search navigation button and
   the selected-track/load toolbar above the browser.
-- This initial browser searches all library tracks. Source navigation,
-  playlists, and crates remain follow-up work.
+- A 48-pixel-high source button to the right of search opens a centered modal
+  tree. Activating an available source replaces the track model and keeps the
+  search filter local to that model. Current Mixxx QML exposes only All Tracks;
+  playlist, crate, and other source wrappers remain upstream follow-up work.
 
 ## Third Implementation Slice: Performance Waveforms
 

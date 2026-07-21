@@ -16,7 +16,9 @@ Rectangle {
     readonly property int keyColumnWidth: 42
     property var openSwipeRow: null
     readonly property int ratingColumnWidth: 72
+    property string selectedSourceLabel: qsTr("All Tracks")
     property url selectedUrl
+    property var sourceModel: null
     property var trackModel: null
 
     function applySearchFilter() {
@@ -38,15 +40,30 @@ Rectangle {
     }
     function loadUrlIntoDeck(url, group) {
         if (!url || url.toString().length === 0) {
-            return;
+            return false;
         }
         Mixxx.PlayerManager.getPlayer(group).loadTrackFromLocationUrl(url, false);
+        return true;
     }
     function loadUrlIntoNextAvailableDeck(url) {
         if (!url || url.toString().length === 0) {
             return;
         }
         Mixxx.PlayerManager.loadLocationUrlIntoNextAvailableDeck(url, false);
+    }
+    function loadSelectedIntoDeck(group) {
+        return root.loadUrlIntoDeck(root.selectedUrl, group);
+    }
+    function activateSource(modelIndex, label) {
+        if (root.openSwipeRow) {
+            root.openSwipeRow.closeMenu();
+        }
+        root.selectedUrl = "";
+        root.sourceModel.activate(modelIndex);
+        root.trackModel = root.sourceModel.tracklist;
+        root.selectedSourceLabel = label;
+        searchFilterTimer.restart();
+        trackList.positionViewAtBeginning();
     }
     function selectTrack(url, row) {
         if (root.openSwipeRow && root.openSwipeRow !== row) {
@@ -57,7 +74,10 @@ Rectangle {
 
     color: TouchTheme.libraryBackground
 
-    Component.onCompleted: root.trackModel = sourceTree.allTracks()
+    Component.onCompleted: {
+        root.sourceModel = sourceTree.sidebar();
+        root.activateSource(root.sourceModel.index(0, 0), qsTr("All Tracks"));
+    }
 
     Mixxx.LibrarySourceTree {
         id: sourceTree
@@ -72,6 +92,19 @@ Rectangle {
             }
         ]
         // qmllint enable unresolved-type
+
+        Mixxx.LibraryAllTrackSource {
+            columns: sourceTree.defaultColumns
+            label: qsTr("All Tracks")
+        }
+    }
+    Connections {
+        function onTracklistChanged() {
+            root.trackModel = root.sourceModel.tracklist;
+            searchFilterTimer.restart();
+        }
+
+        target: root.sourceModel
     }
     Timer {
         id: searchFilterTimer
@@ -198,6 +231,43 @@ Rectangle {
                     onTapped: searchField.clear()
                 }
             }
+            Rectangle {
+                Layout.preferredHeight: TouchTheme.minimumTouchSize
+                Layout.preferredWidth: 156
+                border.color: sourcePicker.visible ? TouchTheme.deck1Accent : TouchTheme.border
+                border.width: 1
+                color: sourceButtonTap.pressed ? TouchTheme.controlPressedBackground : TouchTheme.controlBackground
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                    Image {
+                        anchors.verticalCenter: parent.verticalCenter
+                        fillMode: Image.PreserveAspectFit
+                        height: 20
+                        source: Qt.resolvedUrl("../Icons/browse.svg")
+                        sourceSize.height: 20
+                        sourceSize.width: 20
+                        width: 20
+                    }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: TouchTheme.primaryText
+                        elide: Text.ElideRight
+                        font.family: TouchTheme.fontFamily
+                        font.pixelSize: 13
+                        font.weight: Font.DemiBold
+                        text: root.selectedSourceLabel.toLocaleUpperCase()
+                        width: 104
+                    }
+                }
+                TapHandler {
+                    id: sourceButtonTap
+
+                    onTapped: sourcePicker.open()
+                }
+            }
         }
     }
     Rectangle {
@@ -272,6 +342,149 @@ Rectangle {
         font.pixelSize: 18
         text: root.trackModel === null ? qsTr("Loading library…") : searchField.text.length > 0 ? qsTr("No matching tracks") : qsTr("No tracks in the library")
         visible: trackList.count === 0
+    }
+    Popup {
+        id: sourcePicker
+
+        parent: Overlay.overlay
+        x: Math.round((parent.width - width) / 2)
+        y: Math.round((parent.height - height) / 2)
+        width: Math.min(440, parent.width - 32)
+        height: Math.min(520, parent.height - 32)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        focus: true
+        modal: true
+        padding: 0
+
+        background: Rectangle {
+            border.color: TouchTheme.deck1Accent
+            border.width: 1
+            color: TouchTheme.libraryBackground
+        }
+        contentItem: Item {
+            Rectangle {
+                id: sourcePickerHeader
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                color: TouchTheme.libraryHeaderBackground
+                height: 56
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.right: closeSourcePicker.left
+                    anchors.rightMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: TouchTheme.primaryText
+                    elide: Text.ElideRight
+                    font.family: TouchTheme.fontFamily
+                    font.pixelSize: 16
+                    font.weight: Font.DemiBold
+                    text: qsTr("Library Source")
+                }
+                Rectangle {
+                    id: closeSourcePicker
+
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    color: closeSourcePickerTap.pressed ? TouchTheme.controlPressedBackground : "transparent"
+                    height: parent.height
+                    width: 56
+
+                    Text {
+                        anchors.centerIn: parent
+                        color: TouchTheme.secondaryText
+                        font.family: TouchTheme.fontFamily
+                        font.pixelSize: 22
+                        text: "x"
+                    }
+                    TapHandler {
+                        id: closeSourcePickerTap
+
+                        onTapped: sourcePicker.close()
+                    }
+                }
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    color: TouchTheme.border
+                    height: 1
+                    width: parent.width
+                }
+            }
+            TreeView {
+                id: sourceTreeView
+
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: sourcePickerHeader.bottom
+                clip: true
+                model: root.sourceModel
+
+                delegate: Rectangle {
+                    id: sourceDelegate
+
+                    required property int column
+                    required property int depth
+                    required property bool expanded
+                    required property int hasChildren
+                    required property bool isTreeNode
+                    required property string label
+                    required property int row
+                    required property TreeView treeView
+                    readonly property var modelIndex: treeView.modelIndex(column, row)
+
+                    color: root.selectedSourceLabel === label ? TouchTheme.libraryRowSelectedBackground : sourceDelegateTap.pressed ? TouchTheme.controlPressedBackground : depth === 0 ? TouchTheme.controlBackground : TouchTheme.libraryRowBackground
+                    implicitHeight: 52
+                    implicitWidth: treeView.width
+
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 16 + sourceDelegate.depth * 24
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: TouchTheme.secondaryText
+                        font.family: TouchTheme.fontFamily
+                        font.pixelSize: 18
+                        rotation: sourceDelegate.expanded ? 90 : 0
+                        text: ">"
+                        visible: sourceDelegate.isTreeNode && sourceDelegate.hasChildren > 0
+                    }
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 44 + sourceDelegate.depth * 24
+                        anchors.right: parent.right
+                        anchors.rightMargin: 16
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: root.selectedSourceLabel === sourceDelegate.label ? TouchTheme.deck1Accent : TouchTheme.primaryText
+                        elide: Text.ElideRight
+                        font.family: TouchTheme.fontFamily
+                        font.pixelSize: 15
+                        font.weight: sourceDelegate.depth === 0 ? Font.DemiBold : Font.Normal
+                        text: sourceDelegate.label
+                    }
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        color: TouchTheme.border
+                        height: 1
+                        width: parent.width
+                    }
+                    TapHandler {
+                        id: sourceDelegateTap
+
+                        onTapped: {
+                            root.activateSource(sourceDelegate.modelIndex, sourceDelegate.label);
+                            if (sourceDelegate.isTreeNode && sourceDelegate.hasChildren > 0) {
+                                sourceDelegate.treeView.toggleExpanded(sourceDelegate.row);
+                            } else {
+                                sourcePicker.close();
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     component ColumnHeader: Text {

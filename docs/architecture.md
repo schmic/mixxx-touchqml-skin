@@ -361,7 +361,21 @@ The current components are:
   `Load 1`/`Load 2` actions. Those actions call
   `Player.loadTrackFromLocationUrl()`; double-tapping remains an optional next-
   available-deck shortcut. Opening a row closes the previously open row, and
-  pooled delegates reset before reuse.
+  pooled delegates reset before reuse. A source button beside search opens a
+  centered touch tree backed by `LibrarySourceTree.sidebar()` and swaps the
+  track model when a source is activated. Current Mixxx QML exposes only the
+  creatable `LibraryAllTrackSource`; playlist, crate, and other source wrappers
+  are not yet available to an external QML skin, so the picker currently
+  contains All Tracks only.
+- Controller browse/load bridge: root-owned trigger controls
+  `[Skin],touchqml_browse_or_load_deck1` and
+  `[Skin],touchqml_browse_or_load_deck2` open Browse from Performance. When
+  Browse is already open, they load its touch-selected track into the target
+  deck and return to Performance. An empty selection leaves Browse open. The
+  non-persistent `[Skin],touchqml_controller_api_version` control lets mappings
+  detect this skin-specific API without replacing their behavior under other
+  skins. Root ownership keeps all three controls available while page loading
+  destroys and recreates `BrowseView`.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography
   shared by the first slice.
 
@@ -397,8 +411,8 @@ Implemented and usable for development:
   Performance/Browse page host, fixed-height two-deck overview, adaptive stacked
   scrolling waveforms, two touch-operated eight-hotcue strips, per-deck standard
   and Quick Effect buttons with hold selectors, centralized touch/theme metrics,
-  controller-mappable view controls, and a touch-native all-tracks browser with
-  explicit load actions.
+  controller-mappable view controls, deck-specific browse/load triggers, and a
+  touch-native all-tracks browser with explicit load actions.
 - QML can create and persist its own `[Skin]` controls; focused unit tests cover
   normal creation, defaults, ordering, duplicates, invalid groups, and cleanup.
 
@@ -424,10 +438,10 @@ Still experimental or incomplete:
 - The example is fixed at four engine decks and 64 samplers, with a declared
   minimum width of 1280. It aims to match LateNight, not demonstrate a small
   minimal skin.
-- TouchQML is still an early slice: Browse switches to a searchable all-tracks
-  page, but library sources/playlists are not exposed yet, Touch FX still has no
-  page, and transport, mixer, additional pad modes, and the rest of the
-  performance view are still absent.
+- TouchQML is still an early slice: Browse has a source-picker overlay, but the
+  current Mixxx QML API exposes only All Tracks rather than playlists, crates,
+  and other sources. Touch FX still has no page, and transport, mixer,
+  additional pad modes, and the rest of the performance view are still absent.
 - Some scene-graph waveform renderer combinations remain unsupported; see the
   FIXMEs in `src/qml/qmlwaveformrenderer.cpp` and
   `src/qml/qmlwaveformdisplay.cpp`.
