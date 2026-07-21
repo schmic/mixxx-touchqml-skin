@@ -317,11 +317,16 @@ The current components are:
   vertical space remaining after fixed controls equally. They are display-only
   and composed locally from the portable
   `Mixxx.Controls.WaveformDisplay` API with RGB signal, beat, playhead,
-  cue/hotcue, loop/intro/outro, preroll, and end-warning renderers. The first
-  eight hotcues use explicit position/status marks and the fixed indexed palette
-  instead of relying on default-marker discovery. Blue and green 3-pixel left
-  accents identify Deck 1 and Deck 2 respectively. The white playhead sits at
-  one third of the waveform width, leaving two thirds for upcoming audio.
+  cue/hotcue, loop/intro/outro, preroll, and end-warning renderers. The mark
+  renderer's `defaultMark` creates native hotcue marks, preserving each cue's
+  number, saved label, stored color, type, and end position. Saved-loop hotcues
+  therefore show their range and endpoint. Main cue and active-loop marks remain
+  explicit. Intro/outro ranges and both endpoints follow the persistent
+  TouchQML-owned `[Skin],show_intro_outro_cues` control. Blue and green 3-pixel
+  left accents identify Deck 1 and Deck 2 respectively. The white playhead sits
+  at one third of the waveform width, leaving two thirds for upcoming audio.
+  Markers appear only while their positions are inside the visible scrolling
+  window.
 - `DeckHotcueGrid`: a full-width 32-pixel strip of eight equal buttons. Deck 1's
   strip sits 2 pixels above its waveform; Deck 2's sits 2 pixels below. Buttons
   have 2-pixel gaps, no outer padding or outlines, a neutral dark-gray

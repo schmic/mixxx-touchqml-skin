@@ -310,6 +310,12 @@ remaining space reserved for later transport, pad, and mixer slices.
 - Use a portable local composition of `Mixxx.Controls.WaveformDisplay` with RGB
   signal, beat grid, playhead at one third of the width, cue/hotcue marks,
   loop/intro/outro ranges, preroll, and end-of-track warning renderers.
+- Use native default hotcue marks so cue numbers, saved labels, indexed stored
+  colors, and saved-loop ranges/endpoints stay synchronized with Mixxx. Show the
+  main cue and active-loop boundaries explicitly. Show both intro and outro
+  endpoints and ranges only while `[Skin],show_intro_outro_cues` is active.
+- Markers outside the current scrolling-waveform time window are not represented
+  by edge indicators.
 - Bind zoom to each deck's `waveform_zoom` control and honor Mixxx's synchronized
   waveform-zoom preference.
 - Main waveforms are display-only in this slice. Do not copy the upstream mouse

@@ -43,20 +43,22 @@ Rectangle {
                 startControl: "loop_start_position"
             }
             Mixxx.WaveformMarkRange {
-                color: TouchTheme.deck1Accent
+                color: root.accentColor
                 durationTextColor: TouchTheme.primaryText
                 durationTextLocation: "after"
                 endControl: "intro_end_position"
                 opacity: 0.35
                 startControl: "intro_start_position"
+                visibilityControl: "[Skin],show_intro_outro_cues"
             }
             Mixxx.WaveformMarkRange {
-                color: TouchTheme.deck1Accent
+                color: root.accentColor
                 durationTextColor: TouchTheme.primaryText
                 durationTextLocation: "before"
                 endControl: "outro_end_position"
                 opacity: 0.35
                 startControl: "outro_start_position"
+                visibilityControl: "[Skin],show_intro_outro_cues"
             }
         }
         Mixxx.WaveformRendererRGB {
@@ -81,69 +83,11 @@ Rectangle {
             untilMark.showTime: true
             untilMark.textSize: 11
 
-            Mixxx.WaveformMark {
+            defaultMark: Mixxx.WaveformMark {
                 align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[0].toString()
-                control: "hotcue_1_position"
-                text: " 1 "
+                color: TouchTheme.border.toString()
+                text: " %1 "
                 textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_1_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[1].toString()
-                control: "hotcue_2_position"
-                text: " 2 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_2_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[2].toString()
-                control: "hotcue_3_position"
-                text: " 3 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_3_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[3].toString()
-                control: "hotcue_4_position"
-                text: " 4 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_4_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[4].toString()
-                control: "hotcue_5_position"
-                text: " 5 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_5_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[5].toString()
-                control: "hotcue_6_position"
-                text: " 6 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_6_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[6].toString()
-                control: "hotcue_7_position"
-                text: " 7 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_7_status"
-            }
-            Mixxx.WaveformMark {
-                align: "bottom|center"
-                color: TouchTheme.hotcueSlotColors[7].toString()
-                control: "hotcue_8_position"
-                text: " 8 "
-                textColor: TouchTheme.primaryText.toString()
-                visibilityControl: root.group + ",hotcue_8_status"
             }
 
             Mixxx.WaveformMark {
@@ -168,17 +112,33 @@ Rectangle {
             }
             Mixxx.WaveformMark {
                 align: "top|right"
-                color: TouchTheme.deck1Accent.toString()
+                color: root.accentColor.toString()
                 control: "intro_start_position"
                 text: "IN"
                 textColor: TouchTheme.primaryText.toString()
+                visibilityControl: "[Skin],show_intro_outro_cues"
             }
             Mixxx.WaveformMark {
                 align: "top|left"
-                color: TouchTheme.deck1Accent.toString()
+                color: root.accentColor.toString()
+                control: "intro_end_position"
+                textColor: TouchTheme.primaryText.toString()
+                visibilityControl: "[Skin],show_intro_outro_cues"
+            }
+            Mixxx.WaveformMark {
+                align: "top|right"
+                color: root.accentColor.toString()
                 control: "outro_start_position"
                 text: "OUT"
                 textColor: TouchTheme.primaryText.toString()
+                visibilityControl: "[Skin],show_intro_outro_cues"
+            }
+            Mixxx.WaveformMark {
+                align: "top|left"
+                color: root.accentColor.toString()
+                control: "outro_end_position"
+                textColor: TouchTheme.primaryText.toString()
+                visibilityControl: "[Skin],show_intro_outro_cues"
             }
         }
     }
