@@ -39,6 +39,10 @@ The current Mixxx source is to be found in ../mixxx/
 - Bind existing engine/application controls with `Mixxx.ControlProxy`. Use
   `Mixxx.SkinControlCreator` only for new skin-owned `[Skin]` state; duplicate
   core-owned `[Skin]` controls are rejected.
+- Follow Mixxx control names, button semantics, and controller conventions as
+  closely as possible. For controller interoperability, consume existing Mixxx
+  controls before introducing TouchQML-specific controls; add a skin-specific
+  control only when no suitable core control exists.
 - QML auto-reload destroys and recreates skin-owned objects and controls. Never
   rely on their QObject identity or external connections surviving reload.
 

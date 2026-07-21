@@ -369,12 +369,13 @@ The current components are:
   contains All Tracks only.
 - Controller browse/load bridge: controller mappings open Browse with the
   core-owned `[Skin],show_maximized_library` control. While loaded, `BrowseView`
-  observes core `[Library],SelectPrevTrack`/`SelectNextTrack` and Deck 1/2
+  observes core `[Playlist],SelectPrevTrack`/`SelectNextTrack` and Deck 1/2
   `LoadSelectedTrack` controls directly. Selection controls move through the
-  filtered rows and keep the selected row visible. A load control loads the
-  selected URL into its deck and returns to Performance; an empty selection
-  leaves Browse open. This QML observer is necessary because the legacy library
-  widget handlers for these controls are not connected in QML application mode.
+  filtered rows and keep the selected row visible; the first filtered row is
+  selected automatically. A load control loads the selected URL into its deck
+  and returns to Performance; an empty result leaves Browse open. This QML
+  observer is necessary because the legacy library widget handlers for these
+  controls are not connected in QML application mode.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography
   shared by the first slice.
 
@@ -519,6 +520,10 @@ Use `tools/qmlformat.py` and the repository `.qmlformat.ini` for QML formatting.
   bundled in-tree code until an installation contract exists.
 - Use `SkinControlCreator` only for `[Skin]` state that the skin owns. Use
   `ControlProxy` for existing engine/application controls.
+- Preserve Mixxx control conventions across touch, keyboard, and controller
+  paths. Prefer observing or triggering existing core controls over creating a
+  TouchQML-only API; introduce skin-specific controls only for behavior that has
+  no suitable Mixxx control.
 - Account for QML engine destruction and recreation: QML-owned objects and
   controls are destroyed on auto-reload and must be safely recreated.
 - Add focused tests when changing manifest parsing, QML registrations, control

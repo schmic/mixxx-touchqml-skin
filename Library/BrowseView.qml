@@ -38,6 +38,11 @@ Rectangle {
             const searchableText = [track?.title, track?.artist, track?.genre, track?.comment, track?.keyText].map(value => String(value || "")).join(" ").toLocaleLowerCase();
             entry.inSearchResults = query.length === 0 || searchableText.includes(query);
         }
+        if (searchResultsGroup.count > 0) {
+            const firstEntry = searchResultsGroup.get(0);
+            root.selectedListIndex = 0;
+            root.selectedUrl = firstEntry.model.file_url;
+        }
         trackList.positionViewAtBeginning();
     }
     function loadUrlIntoDeck(url, group) {
@@ -125,7 +130,7 @@ Rectangle {
         key: "show_maximized_library"
     }
     Mixxx.ControlProxy {
-        group: "[Library]"
+        group: "[Playlist]"
         key: "SelectPrevTrack"
 
         onValueChanged: value => {
@@ -135,7 +140,7 @@ Rectangle {
         }
     }
     Mixxx.ControlProxy {
-        group: "[Library]"
+        group: "[Playlist]"
         key: "SelectNextTrack"
 
         onValueChanged: value => {
