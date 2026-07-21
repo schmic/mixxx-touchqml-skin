@@ -12,17 +12,6 @@ ApplicationWindow {
     readonly property real deckSplitX: width / 2
     property bool windowSizeRestored: false
 
-    function browseOrLoad(group) {
-        if (libraryViewControl.value <= 0) {
-            effectsViewControl.value = 0;
-            libraryViewControl.value = 1;
-            return;
-        }
-        if (pageLoader.item?.loadSelectedIntoDeck(group)) {
-            libraryViewControl.value = 0;
-        }
-    }
-
     color: TouchTheme.background
     minimumHeight: 600
     minimumWidth: 1024
@@ -66,31 +55,6 @@ ApplicationWindow {
         persist: true
     }
     Mixxx.SkinControlCreator {
-        defaultValue: 2
-        group: "[Skin]"
-        key: "touchqml_controller_api_version"
-    }
-    Mixxx.SkinControlCreator {
-        buttonMode: Mixxx.SkinControlCreator.Trigger
-        group: "[Skin]"
-        key: "touchqml_browse_or_load_deck1"
-    }
-    Mixxx.SkinControlCreator {
-        buttonMode: Mixxx.SkinControlCreator.Trigger
-        group: "[Skin]"
-        key: "touchqml_browse_or_load_deck2"
-    }
-    Mixxx.SkinControlCreator {
-        buttonMode: Mixxx.SkinControlCreator.Trigger
-        group: "[Skin]"
-        key: "touchqml_library_move_up"
-    }
-    Mixxx.SkinControlCreator {
-        buttonMode: Mixxx.SkinControlCreator.Trigger
-        group: "[Skin]"
-        key: "touchqml_library_move_down"
-    }
-    Mixxx.SkinControlCreator {
         defaultValue: 1024
         group: "[Skin]"
         key: "touchqml_window_width"
@@ -120,52 +84,6 @@ ApplicationWindow {
         group: "[Skin]"
         key: "show_maximized_library"
     }
-    Mixxx.ControlProxy {
-        id: effectsViewControl
-
-        group: "[Skin]"
-        key: "show_effectrack"
-    }
-    Mixxx.ControlProxy {
-        group: "[Skin]"
-        key: "touchqml_browse_or_load_deck1"
-
-        onValueChanged: value => {
-            if (value > 0) {
-                root.browseOrLoad("[Channel1]");
-            }
-        }
-    }
-    Mixxx.ControlProxy {
-        group: "[Skin]"
-        key: "touchqml_browse_or_load_deck2"
-
-        onValueChanged: value => {
-            if (value > 0) {
-                root.browseOrLoad("[Channel2]");
-            }
-        }
-    }
-    Mixxx.ControlProxy {
-        group: "[Skin]"
-        key: "touchqml_library_move_up"
-
-        onValueChanged: value => {
-            if (value > 0 && libraryViewControl.value > 0) {
-                pageLoader.item?.moveSelection(-1);
-            }
-        }
-    }
-    Mixxx.ControlProxy {
-        group: "[Skin]"
-        key: "touchqml_library_move_down"
-
-        onValueChanged: value => {
-            if (value > 0 && libraryViewControl.value > 0) {
-                pageLoader.item?.moveSelection(1);
-            }
-        }
-    }
     Column {
         anchors.fill: parent
         spacing: 0
@@ -183,8 +101,6 @@ ApplicationWindow {
             width: parent.width
 
             Loader {
-                id: pageLoader
-
                 anchors.fill: parent
                 sourceComponent: libraryViewControl.value > 0 ? browsePage : performancePage
             }

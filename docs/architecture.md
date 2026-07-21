@@ -367,18 +367,14 @@ The current components are:
   creatable `LibraryAllTrackSource`; playlist, crate, and other source wrappers
   are not yet available to an external QML skin, so the picker currently
   contains All Tracks only.
-- Controller browse/load bridge: root-owned trigger controls
-  `[Skin],touchqml_browse_or_load_deck1` and
-  `[Skin],touchqml_browse_or_load_deck2` open Browse from Performance. When
-  Browse is already open, they load its touch-selected track into the target
-  deck and return to Performance. An empty selection leaves Browse open. The
-  non-persistent `[Skin],touchqml_controller_api_version` control lets mappings
-  detect this skin-specific API without replacing their behavior under other
-  skins. Version 2 also provides root-owned
-  `[Skin],touchqml_library_move_up`/`touchqml_library_move_down` triggers. They
-  move the touch-native browser selection through its filtered rows and scroll
-  the selected row into view. Root ownership keeps all controls available while
-  page loading destroys and recreates `BrowseView`.
+- Controller browse/load bridge: controller mappings open Browse with the
+  core-owned `[Skin],show_maximized_library` control. While loaded, `BrowseView`
+  observes core `[Library],SelectPrevTrack`/`SelectNextTrack` and Deck 1/2
+  `LoadSelectedTrack` controls directly. Selection controls move through the
+  filtered rows and keep the selected row visible. A load control loads the
+  selected URL into its deck and returns to Performance; an empty selection
+  leaves Browse open. This QML observer is necessary because the legacy library
+  widget handlers for these controls are not connected in QML application mode.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography
   shared by the first slice.
 

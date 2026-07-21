@@ -118,6 +118,52 @@ Rectangle {
             label: qsTr("All Tracks")
         }
     }
+    Mixxx.ControlProxy {
+        id: libraryViewControl
+
+        group: "[Skin]"
+        key: "show_maximized_library"
+    }
+    Mixxx.ControlProxy {
+        group: "[Library]"
+        key: "SelectPrevTrack"
+
+        onValueChanged: value => {
+            if (value > 0) {
+                root.moveSelection(-1);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Library]"
+        key: "SelectNextTrack"
+
+        onValueChanged: value => {
+            if (value > 0) {
+                root.moveSelection(1);
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Channel1]"
+        key: "LoadSelectedTrack"
+
+        onValueChanged: value => {
+            if (value > 0 && root.loadSelectedIntoDeck("[Channel1]")) {
+                libraryViewControl.value = 0;
+            }
+        }
+    }
+    Mixxx.ControlProxy {
+        group: "[Channel2]"
+        key: "LoadSelectedTrack"
+
+        onValueChanged: value => {
+            if (value > 0 && root.loadSelectedIntoDeck("[Channel2]")) {
+                libraryViewControl.value = 0;
+            }
+        }
+    }
     Connections {
         function onTracklistChanged() {
             root.trackModel = root.sourceModel.tracklist;
