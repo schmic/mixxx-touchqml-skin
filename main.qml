@@ -7,6 +7,7 @@ import "Theme"
 import Mixxx 1.0 as Mixxx
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 ApplicationWindow {
     id: root
@@ -114,34 +115,22 @@ ApplicationWindow {
             height: Math.max(0, root.height - TouchTheme.persistentHeaderHeight)
             width: parent.width
 
-            Loader {
+            StackLayout {
                 anchors.fill: parent
-                sourceComponent: libraryViewControl.value > 0 ? browsePage :
-                    effectsViewControl.value > 0 ? effectRackPage :
-                    samplesViewControl.value > 0 ? sampleRackPage : performancePage
+                currentIndex: libraryViewControl.value > 0 ? 1 :
+                    effectsViewControl.value > 0 ? 2 :
+                    samplesViewControl.value > 0 ? 3 : 0
+
+                Performance.PerformanceView {
+                    splitX: root.deckSplitX
+                }
+
+                Library.BrowseView {}
+
+                Effects.EffectRackView {}
+
+                Samples.SampleRackView {}
             }
         }
-    }
-    Component {
-        id: performancePage
-
-        Performance.PerformanceView {
-            splitX: root.deckSplitX
-        }
-    }
-    Component {
-        id: browsePage
-
-        Library.BrowseView {}
-    }
-    Component {
-        id: effectRackPage
-
-        Effects.EffectRackView {}
-    }
-    Component {
-        id: sampleRackPage
-
-        Samples.SampleRackView {}
     }
 }

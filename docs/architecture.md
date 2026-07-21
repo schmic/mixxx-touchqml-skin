@@ -275,10 +275,14 @@ DeckOverview     88
 Total           208
 ```
 
-`main.qml` keeps NavigationBar and DeckStatus persistent, then uses a `Loader`
-to replace everything below them. `PerformanceView` owns DeckOverview and the
-scrolling waveforms; `BrowseView` fills the same page host. Performance-page
-rows receive the same `width / 2` split coordinate from the application root.
+`main.qml` keeps NavigationBar and DeckStatus persistent, then uses a
+`StackLayout` for everything below them. Performance, Browse, Touch FX, and
+Samples pages remain instantiated while hidden. This preserves browser source,
+filter, sort, selection, and scroll state and avoids rebuilding its model on
+each view change, at the cost of retaining page objects in memory.
+`PerformanceView` owns DeckOverview and the scrolling waveforms; `BrowseView`
+fills the same page host. Performance-page rows receive the same `width / 2`
+split coordinate from the application root.
 The left side occupies `0..splitX`, the right side occupies
 `splitX..width`, and the center divider is drawn over that coordinate instead
 of consuming a layout column. This keeps the deck boundary centered at odd and
@@ -365,7 +369,12 @@ The current components are:
   track model when a source is activated. Current Mixxx QML exposes only the
   creatable `LibraryAllTrackSource`; playlist, crate, and other source wrappers
   are not yet available to an external QML skin, so the picker currently
-  contains All Tracks only.
+  contains All Tracks only. Its 48-pixel headers call
+  `LibraryTrackListModel.sort()` and preserve selection by URL across ascending
+  and descending sorts. Rating, genre, comment, and duration use the verified
+  current `ColumnCache` IDs because `TrackListColumn.SQLColumns` does not expose
+  those fields yet. Persistent page ownership also preserves ListView position
+  while Browse is hidden.
 - Controller browse/load bridge: controller mappings open Browse with the
   core-owned `[Skin],show_maximized_library` control. While loaded, `BrowseView`
   mirrors the fixed two-deck portion of Mixxx's QML library control bridge:
@@ -373,10 +382,11 @@ The current components are:
   controls, first-stopped loading, and Deck 1/2 `LoadSelectedTrack` plus
   `LoadSelectedTrackAndPlay`. Selection controls move through filtered rows and
   keep the selected row visible; the first filtered row is selected
-  automatically. Loading does not change the active page; view controls such as
-  the LC6000 Back mapping return to Performance. Dynamic deck, preview-deck, and
-  sampler load handlers remain deferred. This QML observer is necessary because
-  legacy library widget handlers are not connected in QML application mode.
+  automatically. Successful touch or controller loading clears
+  `show_maximized_library` and returns to Performance without destroying Browse
+  state. Dynamic deck, preview-deck, and sampler load handlers remain deferred.
+  This QML observer is necessary because legacy library widget handlers are not
+  connected in QML application mode.
 - `EffectRackView` and `SampleRackView`: empty page placeholders selected by the
   core-owned `[Skin],show_effectrack` and `[Skin],show_samplers` controls.
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography

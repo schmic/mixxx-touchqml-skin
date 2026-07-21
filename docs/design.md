@@ -272,12 +272,14 @@ to the right-deck color at the same `deckSplitX` coordinate.
 The Browse navigation button toggles the core-owned
 `[Skin],show_maximized_library` control. While active, the content area below
 the persistent 120-pixel navigation/status header replaces `PerformanceView`
-with a touch-native all-tracks list backed by Mixxx's QML library model. The
-performance-only overview and scrolling waveforms are unloaded while browsing.
+with a touch-native all-tracks list backed by Mixxx's QML library model. Pages
+remain instantiated in a `StackLayout`, so reopening Browse restores its source,
+query, sort, selected row, and scroll position without rebuilding the model.
 
 - Track rows are 56 logical pixels high and support touch flicking.
 - The browser aligns track/artist, rating, genre, comment, key, and duration
-  under a persistent column header. Long text elides within its column.
+  under a persistent 48-pixel sortable column header. Tapping a header sorts
+  ascending; tapping it again reverses order. Long text elides within its column.
 - A tap selects a track. Starting a left drag selects that track as well, before
   the row begins revealing its actions.
 - Dragging a row left reveals a 192-pixel action pane containing 96-pixel-wide
@@ -285,10 +287,10 @@ performance-only overview and scrolling waveforms are unloaded while browsing.
   only one row remains open, and recycled rows reset to the closed position.
 - Loading uses `Player.loadTrackFromLocationUrl()` and does not rely on drag and
   drop, hover, right click, or a double-click gesture.
-- Standard controller load controls load the selected track without changing
-  the active page. Library movement controls traverse filtered rows, choosing
+- Standard controller and touch load actions load the selected track and return
+  to Performance. Library movement controls traverse filtered rows, choosing
   the first or last row when no row is selected and keeping the new selection
-  visible. View controls remain responsible for returning to Performance.
+  visible. Browse state remains available for the next opening.
 - Double-tap is retained only as an optional shortcut for loading the selected
   track into Mixxx's next available deck.
 - A 48-pixel-high text input filters title, artist, genre, comment, and key with
@@ -324,8 +326,9 @@ remaining space reserved for later transport, pad, and mixer slices.
   waveform-zoom preference.
 - Main waveforms are display-only in this slice. Do not copy the upstream mouse
   scratching, right-button bending, or wheel-zoom handlers into the touch UI.
-- Load only the active page so scrolling waveforms do not consume scene-graph
-  resources behind Browse.
+- Keep pages instantiated to preserve Browse state and avoid model reloads.
+  Hidden pages do not contribute visible scene-graph nodes, though their QML
+  objects remain allocated.
 
 ## Fourth Implementation Slice: Hotcue Strips
 
@@ -344,8 +347,9 @@ waveform.
   palette. Empty slots use a neutral gray stripe. Rendering must never write
   `hotcue_N_color`.
 - Hold `hotcue_N_activate` at 1 while pressed and restore it to 0 on release,
-  disable, or page destruction. This preserves Mixxx's set/activate behavior and
-  prevents a stuck control if the page loader switches during a touch.
+  disable, page hiding, or destruction. This preserves Mixxx's set/activate
+  behavior and prevents a stuck control if the active page changes during a
+  touch.
 - Do not expose a clear gesture in this slice. Clearing remains available from
   keyboard or controller mappings without adding an accidental destructive
   touch action.

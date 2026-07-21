@@ -23,7 +23,7 @@ The current Mixxx source is to be found in ../mixxx/
 ## Structure
 
 - `main.qml` owns the window, shared `width / 2` deck split, persistent
-  navigation/status header, keyboard shortcuts, and replaceable page loader.
+  navigation/status header, keyboard shortcuts, and persistent page stack.
 - `Performance/PerformanceView.qml` owns the overview and stacked scrolling
   waveforms; `Library/BrowseView.qml` is the alternate touch browser page.
 - `Effects/EffectRackView.qml` and `Samples/SampleRackView.qml` are empty rack

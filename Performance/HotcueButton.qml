@@ -43,6 +43,11 @@ Rectangle {
             activateControl.value = 0;
         }
     }
+    onVisibleChanged: {
+        if (!visible && activateControl.initialized) {
+            activateControl.value = 0;
+        }
+    }
 
     Mixxx.ControlProxy {
         id: activateControl

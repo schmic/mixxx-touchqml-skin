@@ -11,15 +11,17 @@ Rectangle {
     id: root
 
     readonly property int commentColumnWidth: 190
-    readonly property int durationColumnWidth: 52
+    readonly property int durationColumnWidth: 60
     readonly property int genreColumnWidth: 120
-    readonly property int keyColumnWidth: 42
+    readonly property int keyColumnWidth: 48
     readonly property int libraryViewFocus: 3
     property var openSwipeRow: null
     readonly property int ratingColumnWidth: 72
     property int selectedListIndex: -1
     property string selectedSourceLabel: qsTr("All Tracks")
     property url selectedUrl
+    property int sortColumn: -1
+    property int sortOrder: Qt.AscendingOrder
     property var sourceModel: null
     property var trackModel: null
 
@@ -51,6 +53,7 @@ Rectangle {
             return false;
         }
         Mixxx.PlayerManager.getPlayer(group).loadTrackFromLocationUrl(url, play);
+        libraryViewControl.value = 0;
         return true;
     }
     function loadUrlIntoNextAvailableDeck(url, play = false) {
@@ -58,6 +61,7 @@ Rectangle {
             return false;
         }
         Mixxx.PlayerManager.loadLocationUrlIntoNextAvailableDeck(url, play);
+        libraryViewControl.value = 0;
         return true;
     }
     function loadSelectedIntoDeck(group, play = false) {
@@ -87,6 +91,9 @@ Rectangle {
         root.selectedListIndex = -1;
         root.sourceModel.activate(modelIndex);
         root.trackModel = root.sourceModel.tracklist;
+        if (root.sortColumn >= 0) {
+            root.trackModel.sort(root.sortColumn, root.sortOrder);
+        }
         root.selectedSourceLabel = label;
         searchFilterTimer.restart();
         trackList.positionViewAtBeginning();
@@ -98,13 +105,39 @@ Rectangle {
         root.selectedUrl = url;
         root.selectedListIndex = row.index;
     }
+    function sortByColumn(column) {
+        if (!root.trackModel) {
+            return;
+        }
+        if (root.sortColumn === column) {
+            root.sortOrder = root.sortOrder === Qt.AscendingOrder ? Qt.DescendingOrder : Qt.AscendingOrder;
+        } else {
+            root.sortColumn = column;
+            root.sortOrder = Qt.AscendingOrder;
+        }
+        root.trackModel.sort(root.sortColumn, root.sortOrder);
+        Qt.callLater(root.restoreSelectedIndex);
+    }
+    function restoreSelectedIndex() {
+        for (let i = 0; i < searchResultsGroup.count; ++i) {
+            if (searchResultsGroup.get(i).model.file_url.toString() === root.selectedUrl.toString()) {
+                root.selectedListIndex = i;
+                trackList.positionViewAtIndex(i, ListView.Contain);
+                return;
+            }
+        }
+        root.selectedListIndex = -1;
+        root.selectedUrl = "";
+    }
 
     color: TouchTheme.libraryBackground
 
     Component.onCompleted: {
         root.sourceModel = sourceTree.sidebar();
         root.activateSource(root.sourceModel.index(0, 0), qsTr("All Tracks"));
-        focusedWidgetControl.value = root.libraryViewFocus;
+        if (libraryViewControl.value > 0) {
+            focusedWidgetControl.value = root.libraryViewFocus;
+        }
     }
 
     Mixxx.LibrarySourceTree {
@@ -117,6 +150,26 @@ Rectangle {
             Mixxx.TrackListColumn {
                 columnIdx: Mixxx.TrackListColumn.SQLColumns.Title
                 label: qsTr("Title")
+            },
+            Mixxx.TrackListColumn {
+                columnIdx: 25 // ColumnCache::COLUMN_LIBRARYTABLE_RATING
+                label: qsTr("Rating")
+            },
+            Mixxx.TrackListColumn {
+                columnIdx: 6 // ColumnCache::COLUMN_LIBRARYTABLE_GENRE
+                label: qsTr("Genre")
+            },
+            Mixxx.TrackListColumn {
+                columnIdx: 11 // ColumnCache::COLUMN_LIBRARYTABLE_COMMENT
+                label: qsTr("Comment")
+            },
+            Mixxx.TrackListColumn {
+                columnIdx: Mixxx.TrackListColumn.SQLColumns.Key
+                label: qsTr("Key")
+            },
+            Mixxx.TrackListColumn {
+                columnIdx: 12 // ColumnCache::COLUMN_LIBRARYTABLE_DURATION
+                label: qsTr("Duration")
             }
         ]
         // qmllint enable unresolved-type
@@ -124,6 +177,18 @@ Rectangle {
         Mixxx.LibraryAllTrackSource {
             columns: sourceTree.defaultColumns
             label: qsTr("All Tracks")
+        }
+    }
+    Mixxx.ControlProxy {
+        id: libraryViewControl
+
+        group: "[Skin]"
+        key: "show_maximized_library"
+
+        onValueChanged: value => {
+            if (value > 0) {
+                focusedWidgetControl.value = root.libraryViewFocus;
+            }
         }
     }
     Mixxx.ControlProxy {
@@ -137,7 +202,7 @@ Rectangle {
         key: "GoToItem"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.loadUrlIntoNextAvailableDeck(root.selectedUrl);
             }
         }
@@ -147,7 +212,7 @@ Rectangle {
         key: "LoadSelectedIntoFirstStopped"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.loadUrlIntoNextAvailableDeck(root.selectedUrl);
             }
         }
@@ -157,7 +222,7 @@ Rectangle {
         key: "SelectTrackKnob"
 
         onValueChanged: value => {
-            if (value !== 0) {
+            if (value !== 0 && libraryViewControl.value > 0) {
                 focusedWidgetControl.value = root.libraryViewFocus;
                 root.moveSelection(value);
             }
@@ -168,7 +233,7 @@ Rectangle {
         key: "SelectPrevTrack"
 
         onValueChanged: value => {
-            if (value > 0) {
+            if (value > 0 && libraryViewControl.value > 0) {
                 focusedWidgetControl.value = root.libraryViewFocus;
                 root.moveSelection(-1);
             }
@@ -179,7 +244,7 @@ Rectangle {
         key: "SelectNextTrack"
 
         onValueChanged: value => {
-            if (value > 0) {
+            if (value > 0 && libraryViewControl.value > 0) {
                 focusedWidgetControl.value = root.libraryViewFocus;
                 root.moveSelection(1);
             }
@@ -190,7 +255,7 @@ Rectangle {
         key: "MoveVertical"
 
         onValueChanged: value => {
-            if (value !== 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value !== 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.moveSelection(value);
             }
         }
@@ -200,7 +265,7 @@ Rectangle {
         key: "MoveUp"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.moveSelection(-1);
             }
         }
@@ -210,7 +275,7 @@ Rectangle {
         key: "MoveDown"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.moveSelection(1);
             }
         }
@@ -220,7 +285,7 @@ Rectangle {
         key: "LoadSelectedTrack"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.loadSelectedIntoDeck("[Channel1]");
             }
         }
@@ -230,7 +295,7 @@ Rectangle {
         key: "LoadSelectedTrack"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.loadSelectedIntoDeck("[Channel2]");
             }
         }
@@ -240,7 +305,7 @@ Rectangle {
         key: "LoadSelectedTrackAndPlay"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.loadSelectedIntoDeck("[Channel1]", true);
             }
         }
@@ -250,7 +315,7 @@ Rectangle {
         key: "LoadSelectedTrackAndPlay"
 
         onValueChanged: value => {
-            if (value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
+            if (value > 0 && libraryViewControl.value > 0 && focusedWidgetControl.value === root.libraryViewFocus) {
                 root.loadSelectedIntoDeck("[Channel2]", true);
             }
         }
@@ -258,6 +323,9 @@ Rectangle {
     Connections {
         function onTracklistChanged() {
             root.trackModel = root.sourceModel.tracklist;
+            if (root.sortColumn >= 0) {
+                root.trackModel.sort(root.sortColumn, root.sortOrder);
+            }
             searchFilterTimer.restart();
         }
 
@@ -436,7 +504,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: searchBar.bottom
         color: TouchTheme.deckStatusAlternateBackground
-        height: 30
+        height: TouchTheme.minimumTouchSize
 
         RowLayout {
             anchors.fill: parent
@@ -446,26 +514,32 @@ Rectangle {
 
             ColumnHeader {
                 Layout.fillWidth: true
+                columnIndex: 0
                 label: qsTr("TRACK")
             }
             ColumnHeader {
                 Layout.preferredWidth: root.ratingColumnWidth
+                columnIndex: 1
                 label: qsTr("RATING")
             }
             ColumnHeader {
                 Layout.preferredWidth: root.genreColumnWidth
+                columnIndex: 2
                 label: qsTr("GENRE")
             }
             ColumnHeader {
                 Layout.preferredWidth: root.commentColumnWidth
+                columnIndex: 3
                 label: qsTr("COMMENT")
             }
             ColumnHeader {
                 Layout.preferredWidth: root.keyColumnWidth
+                columnIndex: 4
                 label: qsTr("KEY")
             }
             ColumnHeader {
                 Layout.preferredWidth: root.durationColumnWidth
+                columnIndex: 5
                 horizontalAlignment: Text.AlignRight
                 label: qsTr("TIME")
             }
@@ -647,14 +721,23 @@ Rectangle {
     }
 
     component ColumnHeader: Text {
+        required property int columnIndex
         required property string label
 
         color: TouchTheme.mutedText
         elide: Text.ElideRight
         font.family: TouchTheme.fontFamily
-        font.pixelSize: 10
+        font.pixelSize: 11
         font.weight: Font.DemiBold
-        text: label
+        opacity: headerTapHandler.pressed ? 0.62 : 1.0
+        text: root.sortColumn === columnIndex ?
+            label + (root.sortOrder === Qt.AscendingOrder ? "  ^" : "  v") : label
         verticalAlignment: Text.AlignVCenter
+
+        TapHandler {
+            id: headerTapHandler
+
+            onTapped: root.sortByColumn(parent.columnIndex)
+        }
     }
 }
