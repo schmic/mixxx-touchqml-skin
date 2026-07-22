@@ -329,7 +329,8 @@ remaining space reserved for later transport, pad, and mixer slices.
   and 374 pixels high respectively.
 - Use a portable local composition of `Mixxx.Controls.WaveformDisplay` with RGB
   signal, beat grid, playhead at one third of the width, cue/hotcue marks,
-  loop/intro/outro ranges, preroll, and end-of-track warning renderers.
+  loop/intro/outro ranges, preroll, and end-of-track warning renderers. Render
+  beatgrid lines in the dark border grey so they blend into the background.
 - Use native default hotcue marks so cue numbers, saved labels, indexed stored
   colors, and saved-loop ranges/endpoints stay synchronized with Mixxx. Show the
   main cue and active-loop boundaries explicitly. Show both intro and outro

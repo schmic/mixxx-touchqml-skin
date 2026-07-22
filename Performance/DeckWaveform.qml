@@ -72,7 +72,7 @@ Rectangle {
             midColor: TouchTheme.waveformMid
         }
         Mixxx.WaveformRendererBeat {
-            color: TouchTheme.mutedText
+            color: TouchTheme.border
         }
         Mixxx.WaveformRendererMark {
             playMarkerBackground: "transparent"
