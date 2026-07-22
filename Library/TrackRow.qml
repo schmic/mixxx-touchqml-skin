@@ -16,7 +16,10 @@ Item {
     required property int genreColumnWidth
     required property int index
     required property int keyColumnWidth
+    required property bool loadEnabled
     property bool menuOpen: false
+    property bool previewHoldTriggered: false
+    required property bool previewEnabled
     required property int ratingColumnWidth
     property bool selected: false
     required property var track
@@ -25,6 +28,7 @@ Item {
     signal loadRequested(string group)
     signal menuClosed(var row)
     signal menuOpenRequested(var row)
+    signal previewRequested(var row)
     signal selectRequested(var row)
 
     function closeMenu() {
@@ -60,6 +64,7 @@ Item {
 
         SwipeLoadButton {
             accentColor: TouchTheme.deck1Accent
+            enabled: root.loadEnabled
             height: parent.height
             label: qsTr("LOAD 1")
             width: root.actionWidth / 2
@@ -71,6 +76,7 @@ Item {
         }
         SwipeLoadButton {
             accentColor: TouchTheme.deck2Accent
+            enabled: root.loadEnabled
             height: parent.height
             label: qsTr("LOAD 2")
             width: root.actionWidth / 2
@@ -184,16 +190,42 @@ Item {
         }
         TapHandler {
             acceptedButtons: Qt.LeftButton
+            longPressThreshold: 0.5
 
             onDoubleTapped: {
+                if (root.previewHoldTriggered) {
+                    root.previewHoldTriggered = false;
+                    return;
+                }
                 if (root.menuOpen) {
                     root.closeMenu();
                     return;
                 }
                 root.selectRequested(root);
-                root.loadNextRequested();
+                if (root.loadEnabled) {
+                    root.loadNextRequested();
+                }
+            }
+            onLongPressed: {
+                if (!root.previewEnabled) {
+                    return;
+                }
+                root.previewHoldTriggered = true;
+                if (root.menuOpen) {
+                    root.closeMenu();
+                }
+                root.previewRequested(root);
+            }
+            onPressedChanged: {
+                if (pressed) {
+                    root.previewHoldTriggered = false;
+                }
             }
             onTapped: {
+                if (root.previewHoldTriggered) {
+                    root.previewHoldTriggered = false;
+                    return;
+                }
                 if (root.menuOpen) {
                     root.closeMenu();
                     return;
@@ -205,6 +237,7 @@ Item {
             id: swipeDragHandler
 
             acceptedButtons: Qt.LeftButton
+            enabled: root.loadEnabled
             target: null
             xAxis.enabled: true
             yAxis.enabled: false
@@ -244,6 +277,7 @@ Item {
         signal triggered
 
         color: swipeLoadTapHandler.pressed ? TouchTheme.controlPressedBackground : TouchTheme.libraryHeaderBackground
+        opacity: enabled ? 1.0 : 0.42
 
         Rectangle {
             anchors.bottom: parent.bottom
@@ -263,6 +297,7 @@ Item {
         TapHandler {
             id: swipeLoadTapHandler
 
+            enabled: swipeLoadButton.enabled
             onTapped: swipeLoadButton.triggered()
         }
     }

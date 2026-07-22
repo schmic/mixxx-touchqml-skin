@@ -370,18 +370,31 @@ The current components are:
   creatable `LibraryAllTrackSource`; playlist, crate, and other source wrappers
   are not yet available to an external QML skin, so the picker currently
   contains All Tracks only. Its 48-pixel headers call
-  `LibraryTrackListModel.sort()` and preserve selection by URL across ascending
-  and descending sorts. Rating, genre, comment, and duration use the verified
+  `LibraryTrackListModel.sort()` when the model advertises sorting support and
+  default to Genre ascending, then preserve selection by URL across later
+  ascending and descending sorts. Holding the Genre header for 500 milliseconds
+  opens a touch popup containing the source model's unique non-empty genre
+  values plus an All Genres option. The selected exact, case-insensitive genre
+  filter combines with text search and persists while Browse remains
+  instantiated. Loading is likewise enabled only when the model advertises
+  deck-loading support. Rating, genre, comment, and duration use the verified
   current `ColumnCache` IDs because `TrackListColumn.SQLColumns` does not expose
   those fields yet. Persistent page ownership also preserves ListView position
-  while Browse is hidden.
+  while Browse is hidden. A compact Preview Deck 1 control sits left of search:
+  its play/pause button drives the standard preview-deck play control, and its
+  full-track RGB overview shows playback position and supports touch seeking.
+  Holding a load-capable track row for 500 milliseconds selects it, loads it
+  into `[PreviewDeck1]`, and starts playback. The preview path requires the
+  model's `LoadToPreviewDeck` capability and always uses the first preview deck.
 - Controller browse/load bridge: controller mappings open Browse with the
   core-owned `[Skin],show_maximized_library` control. While loaded, `BrowseView`
   mirrors the fixed two-deck portion of Mixxx's QML library control bridge:
   `[Library]` move/go-to controls, deprecated `[Playlist]` encoder/previous/next
   controls, first-stopped loading, and Deck 1/2 `LoadSelectedTrack` plus
   `LoadSelectedTrackAndPlay`. Selection controls move through filtered rows and
-  keep the selected row visible. Selection is established after the filtered
+  wrap at list boundaries like Mixxx's upstream QML track list. Up/Down keyboard
+  input uses the same movement path, while Enter/Return loads the selection into
+  the next available deck. Selection is established after the filtered
   `DelegateModelGroup` updates and synchronizes URL, list index, and current
   item. Loading never changes view controls; controller mappings decide whether
   to remain in Browse or return to Performance. Deck load handlers respond to

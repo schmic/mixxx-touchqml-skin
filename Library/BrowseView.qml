@@ -12,18 +12,26 @@ Rectangle {
 
     readonly property int commentColumnWidth: 190
     readonly property int durationColumnWidth: 60
+    property var availableGenres: []
     readonly property int genreColumnWidth: 120
     readonly property int keyColumnWidth: 48
     readonly property int libraryViewFocus: 3
+    readonly property var modelCapabilities: root.trackModel ? root.trackModel.getCapabilities() : Mixxx.LibraryTrackListModel.Capability.None
     property var openSwipeRow: null
+    readonly property string previewDeckGroup: "[PreviewDeck1]"
     readonly property int ratingColumnWidth: 72
     property int selectedListIndex: -1
+    property string selectedGenreFilter: ""
     property string selectedSourceLabel: qsTr("All Tracks")
     property url selectedUrl
-    property int sortColumn: -1
+    property int sortColumn: 2
     property int sortOrder: Qt.AscendingOrder
     property var sourceModel: null
     property var trackModel: null
+
+    readonly property bool canLoadToDeck: root.hasCapabilities(Mixxx.LibraryTrackListModel.Capability.LoadToDeck)
+    readonly property bool canLoadToPreviewDeck: numPreviewDecksControl.value > 0 && root.hasCapabilities(Mixxx.LibraryTrackListModel.Capability.LoadToPreviewDeck)
+    readonly property bool canSort: root.hasCapabilities(Mixxx.LibraryTrackListModel.Capability.Sorting)
 
     function applySearchFilter() {
         if (root.trackModel === null) {
@@ -34,32 +42,61 @@ Rectangle {
         }
         root.selectedUrl = "";
         root.selectedListIndex = -1;
+        root.refreshAvailableGenres();
         const query = searchField.text.trim().toLocaleLowerCase();
+        const genreFilter = root.selectedGenreFilter.toLocaleLowerCase();
         for (let i = filteredTrackModel.items.count - 1; i >= 0; --i) {
             const entry = filteredTrackModel.items.get(i);
             const track = entry.model.track;
+            const genre = String(track?.genre || "").trim();
             const searchableText = [track?.title, track?.artist, track?.genre, track?.comment, track?.keyText].map(value => String(value || "")).join(" ").toLocaleLowerCase();
-            entry.inSearchResults = query.length === 0 || searchableText.includes(query);
+            const genreMatches = genreFilter.length === 0 || genre.toLocaleLowerCase() === genreFilter;
+            entry.inSearchResults = genreMatches && (query.length === 0 || searchableText.includes(query));
         }
         trackList.positionViewAtBeginning();
         Qt.callLater(root.ensureSelection);
     }
+    function hasCapabilities(capabilities) {
+        return (root.modelCapabilities & capabilities) === capabilities;
+    }
     function loadUrlIntoDeck(url, group, play = false) {
-        if (!url || url.toString().length === 0) {
+        if (!root.canLoadToDeck || !url || url.toString().length === 0) {
             return false;
         }
         Mixxx.PlayerManager.getPlayer(group).loadTrackFromLocationUrl(url, play);
         return true;
     }
     function loadUrlIntoNextAvailableDeck(url, play = false) {
-        if (!url || url.toString().length === 0) {
+        if (!root.canLoadToDeck || !url || url.toString().length === 0) {
             return false;
         }
         Mixxx.PlayerManager.loadLocationUrlIntoNextAvailableDeck(url, play);
         return true;
     }
+    function loadUrlIntoPreviewDeck(url) {
+        if (!root.canLoadToPreviewDeck || !url || url.toString().length === 0) {
+            return false;
+        }
+        const player = Mixxx.PlayerManager.getPlayer(root.previewDeckGroup);
+        if (!player) {
+            return false;
+        }
+        player.loadTrackFromLocationUrl(url, true);
+        return true;
+    }
     function loadSelectedIntoDeck(group, play = false) {
         return root.loadUrlIntoDeck(root.selectedUrl, group, play);
+    }
+    function refreshAvailableGenres() {
+        const genresByKey = {};
+        for (let i = 0; i < filteredTrackModel.items.count; ++i) {
+            const genre = String(filteredTrackModel.items.get(i).model.track?.genre || "").trim();
+            const key = genre.toLocaleLowerCase();
+            if (genre.length > 0 && !Object.prototype.hasOwnProperty.call(genresByKey, key)) {
+                genresByKey[key] = genre;
+            }
+        }
+        root.availableGenres = Object.keys(genresByKey).map(key => genresByKey[key]).sort((left, right) => left.localeCompare(right));
     }
     function moveSelection(direction) {
         const count = searchResultsGroup.count;
@@ -70,7 +107,7 @@ Rectangle {
         if (nextIndex < 0) {
             nextIndex = direction > 0 ? 0 : count - 1;
         } else {
-            nextIndex = Math.max(0, Math.min(count - 1, nextIndex + direction));
+            nextIndex = Mixxx.MathUtils.positiveModulo(nextIndex + direction, count);
         }
         const entry = searchResultsGroup.get(nextIndex);
         root.selectedListIndex = nextIndex;
@@ -104,6 +141,8 @@ Rectangle {
         }
         root.selectedUrl = "";
         root.selectedListIndex = -1;
+        root.selectedGenreFilter = "";
+        root.availableGenres = [];
         trackList.currentIndex = -1;
         root.sourceModel.activate(modelIndex);
         root.trackModel = root.sourceModel.tracklist;
@@ -125,7 +164,7 @@ Rectangle {
         trackList.forceActiveFocus();
     }
     function sortByColumn(column) {
-        if (!root.trackModel) {
+        if (!root.trackModel || !root.canSort) {
             return;
         }
         if (root.sortColumn === column) {
@@ -213,6 +252,12 @@ Rectangle {
                 Qt.callLater(root.ensureSelection);
             }
         }
+    }
+    Mixxx.ControlProxy {
+        id: numPreviewDecksControl
+
+        group: "[App]"
+        key: "num_preview_decks"
     }
     Mixxx.ControlProxy {
         id: focusedWidgetControl
@@ -389,6 +434,8 @@ Rectangle {
             durationColumnWidth: root.durationColumnWidth
             genreColumnWidth: root.genreColumnWidth
             keyColumnWidth: root.keyColumnWidth
+            loadEnabled: root.canLoadToDeck
+            previewEnabled: root.canLoadToPreviewDeck
             ratingColumnWidth: root.ratingColumnWidth
             selected: root.selectedUrl.toString() === file_url.toString()
             width: trackList.width
@@ -408,6 +455,10 @@ Rectangle {
                     root.openSwipeRow.closeMenu();
                 }
                 root.openSwipeRow = row;
+            }
+            onPreviewRequested: row => {
+                root.selectTrack(file_url, row);
+                root.loadUrlIntoPreviewDeck(file_url);
             }
             onSelectRequested: row => root.selectTrack(file_url, row)
         }
@@ -433,6 +484,12 @@ Rectangle {
             anchors.rightMargin: 8
             spacing: 8
 
+            PreviewDeck {
+                Layout.preferredHeight: TouchTheme.minimumTouchSize
+                Layout.preferredWidth: 320
+                group: root.previewDeckGroup
+                visible: numPreviewDecksControl.value > 0
+            }
             TextField {
                 id: searchField
 
@@ -556,7 +613,14 @@ Rectangle {
             ColumnHeader {
                 Layout.preferredWidth: root.genreColumnWidth
                 columnIndex: 2
+                highlighted: root.selectedGenreFilter.length > 0
+                holdEnabled: root.trackModel !== null
                 label: qsTr("GENRE")
+
+                onHeld: {
+                    root.refreshAvailableGenres();
+                    genrePicker.open();
+                }
             }
             ColumnHeader {
                 Layout.preferredWidth: root.commentColumnWidth
@@ -597,6 +661,23 @@ Rectangle {
         model: filteredTrackModel
         reuseItems: true
 
+        Keys.onDownPressed: event => {
+            root.moveSelection(1);
+            event.accepted = true;
+        }
+        Keys.onEnterPressed: event => {
+            root.loadUrlIntoNextAvailableDeck(root.selectedUrl);
+            event.accepted = true;
+        }
+        Keys.onReturnPressed: event => {
+            root.loadUrlIntoNextAvailableDeck(root.selectedUrl);
+            event.accepted = true;
+        }
+        Keys.onUpPressed: event => {
+            root.moveSelection(-1);
+            event.accepted = true;
+        }
+
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
         }
@@ -606,8 +687,133 @@ Rectangle {
         color: TouchTheme.mutedText
         font.family: TouchTheme.fontFamily
         font.pixelSize: 18
-        text: root.trackModel === null ? qsTr("Loading library…") : searchField.text.length > 0 ? qsTr("No matching tracks") : qsTr("No tracks in the library")
+        text: root.trackModel === null ? qsTr("Loading library…") : searchField.text.length > 0 || root.selectedGenreFilter.length > 0 ? qsTr("No tracks match current filters") : qsTr("No tracks in the library")
         visible: trackList.count === 0
+    }
+    Popup {
+        id: genrePicker
+
+        parent: Overlay.overlay
+        x: Math.round((parent.width - width) / 2)
+        y: Math.round((parent.height - height) / 2)
+        width: Math.min(400, parent.width - 32)
+        height: Math.min(520, 56 + (root.availableGenres.length + 1) * TouchTheme.minimumTouchSize, parent.height - 32)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        focus: true
+        modal: true
+        padding: 0
+
+        background: Rectangle {
+            border.color: TouchTheme.deck1Accent
+            border.width: 1
+            color: TouchTheme.libraryBackground
+        }
+        contentItem: Item {
+            Rectangle {
+                id: genrePickerHeader
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                color: TouchTheme.libraryHeaderBackground
+                height: 56
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.right: closeGenrePicker.left
+                    anchors.rightMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: TouchTheme.primaryText
+                    elide: Text.ElideRight
+                    font.family: TouchTheme.fontFamily
+                    font.pixelSize: 16
+                    font.weight: Font.DemiBold
+                    text: qsTr("Genre Filter")
+                }
+                Rectangle {
+                    id: closeGenrePicker
+
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    color: closeGenrePickerTap.pressed ? TouchTheme.controlPressedBackground : "transparent"
+                    height: parent.height
+                    width: 56
+
+                    Text {
+                        anchors.centerIn: parent
+                        color: TouchTheme.secondaryText
+                        font.family: TouchTheme.fontFamily
+                        font.pixelSize: 22
+                        text: "x"
+                    }
+                    TapHandler {
+                        id: closeGenrePickerTap
+
+                        onTapped: genrePicker.close()
+                    }
+                }
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    color: TouchTheme.border
+                    height: 1
+                    width: parent.width
+                }
+            }
+            ListView {
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: genrePickerHeader.bottom
+                clip: true
+                model: [""].concat(root.availableGenres)
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
+
+                delegate: Rectangle {
+                    id: genreDelegate
+
+                    required property int index
+                    required property string modelData
+                    readonly property bool selected: root.selectedGenreFilter === modelData
+
+                    color: selected ? TouchTheme.libraryRowSelectedBackground : genreDelegateTap.pressed ? TouchTheme.controlPressedBackground : index % 2 === 0 ? TouchTheme.libraryRowBackground : TouchTheme.libraryRowAlternateBackground
+                    height: TouchTheme.minimumTouchSize
+                    width: ListView.view.width
+
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 16
+                        anchors.right: parent.right
+                        anchors.rightMargin: 16
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: genreDelegate.selected ? TouchTheme.deck1Accent : TouchTheme.primaryText
+                        elide: Text.ElideRight
+                        font.family: TouchTheme.fontFamily
+                        font.pixelSize: 15
+                        font.weight: genreDelegate.selected ? Font.DemiBold : Font.Normal
+                        text: genreDelegate.modelData.length > 0 ? genreDelegate.modelData : qsTr("ALL GENRES")
+                    }
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        color: TouchTheme.border
+                        height: 1
+                        width: parent.width
+                    }
+                    TapHandler {
+                        id: genreDelegateTap
+
+                        onTapped: {
+                            root.selectedGenreFilter = genreDelegate.modelData;
+                            root.applySearchFilter();
+                            genrePicker.close();
+                        }
+                    }
+                }
+            }
+        }
     }
     Popup {
         id: sourcePicker
@@ -755,14 +961,21 @@ Rectangle {
 
     component ColumnHeader: Text {
         required property int columnIndex
+        property bool highlighted: false
+        property bool holdEnabled: false
+        property bool holdTriggered: false
         required property string label
+        property bool sortEnabled: root.canSort
 
-        color: TouchTheme.mutedText
+        signal held
+
+        color: highlighted ? TouchTheme.activeLeader : TouchTheme.mutedText
+        enabled: sortEnabled || holdEnabled
         elide: Text.ElideRight
         font.family: TouchTheme.fontFamily
         font.pixelSize: 11
         font.weight: Font.DemiBold
-        opacity: headerTapHandler.pressed ? 0.62 : 1.0
+        opacity: !enabled ? 0.42 : headerTapHandler.pressed ? 0.62 : 1.0
         text: root.sortColumn === columnIndex ?
             label + (root.sortOrder === Qt.AscendingOrder ? "  ^" : "  v") : label
         verticalAlignment: Text.AlignVCenter
@@ -770,7 +983,29 @@ Rectangle {
         TapHandler {
             id: headerTapHandler
 
-            onTapped: root.sortByColumn(parent.columnIndex)
+            enabled: parent.enabled
+            longPressThreshold: 0.5
+
+            onLongPressed: {
+                if (parent.holdEnabled) {
+                    parent.holdTriggered = true;
+                    parent.held();
+                }
+            }
+            onPressedChanged: {
+                if (pressed) {
+                    parent.holdTriggered = false;
+                }
+            }
+            onTapped: {
+                if (parent.holdTriggered) {
+                    parent.holdTriggered = false;
+                    return;
+                }
+                if (parent.sortEnabled) {
+                    root.sortByColumn(parent.columnIndex);
+                }
+            }
         }
     }
 }

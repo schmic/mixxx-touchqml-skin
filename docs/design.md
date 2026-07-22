@@ -279,7 +279,12 @@ query, sort, selected row, and scroll position without rebuilding the model.
 - Track rows are 56 logical pixels high and support touch flicking.
 - The browser aligns track/artist, rating, genre, comment, key, and duration
   under a persistent 48-pixel sortable column header. Tapping a header sorts
-  ascending; tapping it again reverses order. Long text elides within its column.
+  ascending; tapping it again reverses order. Initial order is Genre ascending.
+  Holding Genre for 500 milliseconds opens a single-select popup of unique
+  non-empty genre values plus All Genres. Its exact case-insensitive filter
+  combines with text search. The Genre header uses the Sync Lead color while a
+  filter is active without replacing its label. Long text elides within its
+  column.
 - A tap selects a track. Starting a left drag selects that track as well, before
   the row begins revealing its actions.
 - Dragging a row left reveals a 192-pixel action pane containing 96-pixel-wide
@@ -290,13 +295,21 @@ query, sort, selected row, and scroll position without rebuilding the model.
 - Standard controller and touch load actions only load the selected track; view
   transitions remain the caller's responsibility. Library movement controls
   traverse filtered rows, choosing the first or last row when no row is selected
-  and keeping URL, list index, current item, and visible position synchronized.
-  Browse state remains available for the next opening.
+  and wrapping at list boundaries thereafter. Up/Down keys use the same movement
+  behavior; Enter/Return loads into the next available deck. URL, list index,
+  current item, and visible position remain synchronized. Loading and sorting
+  honor the active model's advertised capabilities. Browse state remains
+  available for the next opening.
 - Double-tap is retained only as an optional shortcut for loading the selected
   track into Mixxx's next available deck.
 - A 48-pixel-high text input filters title, artist, genre, comment, and key with
   a short debounce. It replaces both the global Search navigation button and
   the selected-track/load toolbar above the browser.
+- A 320-pixel compact preview control sits left of search when a preview deck is
+  available. It contains a 48-pixel play/pause target and a seekable full-track
+  RGB waveform for Preview Deck 1. Holding a track row for 500 milliseconds
+  selects that row, loads it into Preview Deck 1, and starts playback when the
+  active model advertises preview-deck loading support.
 - A 48-pixel-high source button to the right of search opens a centered modal
   tree. Activating an available source replaces the track model and keeps the
   search filter local to that model. Current Mixxx QML exposes only All Tracks;
