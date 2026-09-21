@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import "../Theme"
+import Mixxx 1.0 as Mixxx
 import QtQuick
 import QtQuick.Layouts
 
@@ -17,7 +18,9 @@ Item {
     required property int index
     required property int keyColumnWidth
     required property bool loadEnabled
+    required property int loaded_deck_mask
     property bool menuOpen: false
+    required property bool preview_deck_loaded
     property bool previewHoldTriggered: false
     required property bool previewEnabled
     required property int ratingColumnWidth
@@ -48,6 +51,27 @@ Item {
         root.menuOpenRequested(root);
         root.menuOpen = true;
         rowContent.x = -root.actionWidth;
+    }
+    function keyColor(numericKey) {
+        const openKeyNumber = Mixxx.KeyUtils.keyToOpenKeyNumber(numericKey);
+        const palette = Mixxx.Config.keyColorPalette;
+        if (!Mixxx.Config.configKeyColorsEnabled || openKeyNumber <= 0 ||
+                !palette || palette.length < openKeyNumber) {
+            return TouchTheme.keyText;
+        }
+        return palette[openKeyNumber - 1];
+    }
+    readonly property color loadedMarkerColor: {
+        if (loaded_deck_mask & 1) {
+            return TouchTheme.deck1Accent;
+        }
+        if (loaded_deck_mask & 2) {
+            return TouchTheme.deck2Accent;
+        }
+        if (preview_deck_loaded) {
+            return TouchTheme.previewAccent;
+        }
+        return root.selected ? TouchTheme.deck1Accent : "transparent";
     }
 
     clip: true
@@ -115,7 +139,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.top: parent.top
-            color: root.selected ? TouchTheme.deck1Accent : "transparent"
+            color: root.loadedMarkerColor
             width: 3
         }
         Rectangle {
@@ -178,7 +202,7 @@ Item {
             }
             MetadataValue {
                 Layout.preferredWidth: root.keyColumnWidth
-                color: TouchTheme.keyText
+                color: root.keyColor(root.track?.numericKey || 0)
                 text: root.track?.keyText || "--"
             }
             MetadataValue {

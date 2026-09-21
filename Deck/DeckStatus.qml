@@ -19,6 +19,15 @@ Rectangle {
         return root.currentTrack?.title || qsTr("Unknown title");
     }
     required property string group
+    readonly property color keyColor: {
+        const openKeyNumber = Mixxx.KeyUtils.keyToOpenKeyNumber(keyControl.value);
+        const palette = Mixxx.Config.keyColorPalette;
+        if (!Mixxx.Config.configKeyColorsEnabled || openKeyNumber <= 0 ||
+                !palette || palette.length < openKeyNumber) {
+            return TouchTheme.keyText;
+        }
+        return palette[openKeyNumber - 1];
+    }
     readonly property real layoutProgress: Math.max(0, Math.min(1, (width - 512) / 448))
     readonly property bool loaded: player?.isLoaded ?? false
     readonly property var player: Mixxx.PlayerManager.getPlayer(root.group)
@@ -215,7 +224,7 @@ Rectangle {
             }
             MetaValue {
                 Layout.preferredWidth: 48 + 32 * root.layoutProgress
-                accent: true
+                color: root.keyColor
                 fontPixelSize: 20
                 text: root.displayKey.length > 0 ? root.displayKey : "--"
             }
@@ -465,7 +474,7 @@ Rectangle {
     component MetaValue: Item {
         id: metaValue
 
-        property bool accent: false
+        property color color: TouchTheme.primaryText
         property int fontPixelSize: 18
         required property string text
 
@@ -474,7 +483,7 @@ Rectangle {
         Text {
             anchors.fill: parent
             bottomPadding: 1
-            color: metaValue.accent ? TouchTheme.keyText : TouchTheme.primaryText
+            color: metaValue.color
             elide: Text.ElideRight
             font.family: TouchTheme.fontFamily
             font.pixelSize: metaValue.fontPixelSize

@@ -22,14 +22,18 @@ The current Mixxx source is to be found in ../mixxx/
 
 ## Structure
 
-- `main.qml` owns the window, shared `width / 2` deck split, persistent
-  navigation/status header, keyboard shortcuts, and persistent page stack.
+- `main.qml` owns the startup window and must defer core-dependent content
+  until `Mixxx.Core.ready`. `TouchMainWindow.qml` owns shared `width / 2`
+  deck split, persistent navigation/status header, keyboard shortcuts, and
+  persistent page stack.
 - `Performance/PerformanceView.qml` owns the overview and stacked scrolling
   waveforms; `Library/BrowseView.qml` is the alternate touch browser page.
 - `Effects/EffectRackView.qml` and `Samples/SampleRackView.qml` are empty rack
   pages selected by core-owned Mixxx skin controls.
 - The browser filtering uses
   `DelegateModel` groups, and pooled `TrackRow` delegates must reset swipe state.
+- `BrowseView` handles deck and Preview Deck load controls with its selected
+  URL because QML browsing does not use the legacy selected-row model.
 
 ## Compatibility
 

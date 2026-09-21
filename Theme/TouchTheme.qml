@@ -48,6 +48,7 @@ QtObject {
     readonly property int navigationIconSize: 24
     readonly property int navigationLabelSize: 16
     readonly property color overviewBackground: "#050809"
+    readonly property color previewAccent: "#ff9e4a"
     readonly property int overviewHotcuePointerHeight: 6
     readonly property int overviewHotcuePointerWidth: 9
     readonly property int persistentHeaderHeight: navigationBarHeight + deckStatusHeight

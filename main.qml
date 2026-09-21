@@ -1,136 +1,83 @@
-import "Deck" as Deck
-import "Effects" as Effects
-import "Library" as Library
-import "Performance" as Performance
-import "Samples" as Samples
 import "Theme"
 import Mixxx 1.0 as Mixxx
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 
 ApplicationWindow {
     id: root
 
-    readonly property real deckSplitX: width / 2
-    property bool windowSizeRestored: false
+    property int displayedProgress: 0
 
-    color: TouchTheme.background
+    color: startupScreen.backgroundColor
     minimumHeight: 600
     minimumWidth: 1024
     title: qsTr("Touch QML")
-    visible: false
+    visible: true
 
-    Component.onCompleted: {
-        width = Math.max(minimumWidth, windowWidthControl.value);
-        height = Math.max(minimumHeight, windowHeightControl.value);
-        windowSizeRestored = true;
-        visible = true;
-    }
-    onHeightChanged: {
-        if (windowSizeRestored && visibility === Window.Windowed) {
-            windowHeightControl.value = height;
-        }
-    }
-    onWidthChanged: {
-        if (windowSizeRestored && visibility === Window.Windowed) {
-            windowWidthControl.value = width;
+    function updateProgress() {
+        if (!Mixxx.Core.ready) {
+            displayedProgress = Math.max(displayedProgress,
+                                         Mixxx.Core.initializationProgress);
+        } else if (mainWindowLoader.status === Loader.Ready) {
+            displayedProgress = 100;
+        } else {
+            displayedProgress = Math.max(displayedProgress,
+                                         65 + Math.round(mainWindowLoader.progress * 34));
         }
     }
 
-    Shortcut {
-        context: Qt.ApplicationShortcut
-        sequence: "Ctrl+P"
+    function handleMainWindowLoaderStatus() {
+        updateProgress();
+        if (mainWindowLoader.status === Loader.Error) {
+            console.error("Failed to load the TouchQML main window");
+            Qt.quit();
+        }
+    }
 
-        onActivated: Mixxx.PreferencesDialog.show()
-    }
-    Shortcut {
-        context: Qt.ApplicationShortcut
-        sequence: "Ctrl+Q"
+    Connections {
+        target: Mixxx.Core
 
-        onActivated: Qt.quit()
+        function onInitializationProgressChanged() {
+            root.updateProgress();
+        }
+        function onReadyChanged() {
+            root.updateProgress();
+        }
     }
-    Mixxx.SkinControlCreator {
-        buttonMode: Mixxx.SkinControlCreator.Toggle
-        defaultValue: 1
-        group: "[Skin]"
-        key: "show_intro_outro_cues"
-        persist: true
-    }
-    Mixxx.SkinControlCreator {
-        defaultValue: 1024
-        group: "[Skin]"
-        key: "touchqml_window_width"
-        persist: true
-    }
-    Mixxx.SkinControlCreator {
-        defaultValue: 600
-        group: "[Skin]"
-        key: "touchqml_window_height"
-        persist: true
-    }
-    Mixxx.ControlProxy {
-        id: windowWidthControl
 
-        group: "[Skin]"
-        key: "touchqml_window_width"
-    }
-    Mixxx.ControlProxy {
-        id: windowHeightControl
+    Loader {
+        id: mainWindowLoader
 
-        group: "[Skin]"
-        key: "touchqml_window_height"
-    }
-    Mixxx.ControlProxy {
-        id: libraryViewControl
-
-        group: "[Skin]"
-        key: "show_maximized_library"
-    }
-    Mixxx.ControlProxy {
-        id: effectsViewControl
-
-        group: "[Skin]"
-        key: "show_effectrack"
-    }
-    Mixxx.ControlProxy {
-        id: samplesViewControl
-
-        group: "[Skin]"
-        key: "show_samplers"
-    }
-    Column {
         anchors.fill: parent
-        spacing: 0
+        active: Mixxx.Core.ready
+        asynchronous: true
 
-        NavigationBar {
-            splitX: root.deckSplitX
-            width: parent.width
-        }
-        Deck.DeckStatusRow {
-            splitX: root.deckSplitX
-            width: parent.width
-        }
-        Item {
-            height: Math.max(0, root.height - TouchTheme.persistentHeaderHeight)
-            width: parent.width
+        onProgressChanged: root.updateProgress()
+        onStatusChanged: root.handleMainWindowLoaderStatus()
 
-            StackLayout {
+        sourceComponent: Component {
+            TouchMainWindow {
                 anchors.fill: parent
-                currentIndex: libraryViewControl.value > 0 ? 1 :
-                    effectsViewControl.value > 0 ? 2 :
-                    samplesViewControl.value > 0 ? 3 : 0
-
-                Performance.PerformanceView {
-                    splitX: root.deckSplitX
-                }
-
-                Library.BrowseView {}
-
-                Effects.EffectRackView {}
-
-                Samples.SampleRackView {}
+                applicationWindow: root
             }
         }
     }
+
+    StartupScreen {
+        id: startupScreen
+
+        anchors.fill: parent
+        opacity: mainWindowLoader.status === Loader.Ready ? 0 : 1
+        progress: root.displayedProgress
+        visible: opacity > 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.OutQuad
+            }
+        }
+    }
+
+    Component.onCompleted: updateProgress()
 }

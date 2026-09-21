@@ -67,7 +67,8 @@ instead of the configured skin.
 
 ## Repository Layout
 
-- `main.qml`: application window and top-level view switching
+- `main.qml`: startup shell; defers application content until `Mixxx.Core.ready`
+- `TouchMainWindow.qml`: application controls and top-level view switching
 - `NavigationBar.qml`: global navigation and status actions
 - `Controls/`: reusable skin controls
 - `Deck/`: deck metadata, sync, and waveform overview components

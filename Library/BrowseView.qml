@@ -389,6 +389,16 @@ Rectangle {
             }
         }
     }
+    Mixxx.ControlProxy {
+        group: root.previewDeckGroup
+        key: "LoadSelectedTrackAndPlay"
+
+        onValueChanged: value => {
+            if (value > 0) {
+                root.loadUrlIntoPreviewDeck(root.selectedUrl);
+            }
+        }
+    }
     Connections {
         function onTracklistChanged() {
             root.trackModel = root.sourceModel.tracklist;

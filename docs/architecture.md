@@ -57,9 +57,9 @@ The relevant flow is:
 4. During startup, `src/main.cpp` asks `SkinLoader` for the configured skin.
    If its type is `SkinType::QML`, it constructs `QmlApplication` with the
    skin's absolute `main.qml` path.
-5. `QmlApplication` initializes core services, registers/provides Mixxx's QML
-   API, adds `:/mixxx.org/imports` as an import path, and loads the entry point
-   in a new `QQmlApplicationEngine`.
+5. `QmlApplication` loads the entry point in a new `QQmlApplicationEngine`,
+   then initializes core services and provides Mixxx's QML API. The entry point
+   must defer all core-dependent components until `Mixxx.Core.ready`.
 6. If no root object is created, startup fails. Otherwise controller devices
    are set up after the UI is loaded.
 
@@ -275,7 +275,9 @@ DeckOverview     88
 Total           208
 ```
 
-`main.qml` keeps NavigationBar and DeckStatus persistent, then uses a
+`main.qml` first shows a startup screen, then loads `TouchMainWindow.qml` only
+after `Mixxx.Core.ready`. `TouchMainWindow.qml` keeps NavigationBar and
+DeckStatus persistent, then uses a
 `StackLayout` for everything below them. Performance, Browse, Touch FX, and
 Samples pages remain instantiated while hidden. This preserves browser source,
 filter, sort, selection, and scroll state and avoids rebuilding its model on
