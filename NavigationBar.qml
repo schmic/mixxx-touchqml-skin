@@ -30,6 +30,12 @@ Item {
         key: "show_samplers"
     }
     Mixxx.ControlProxy {
+        id: settingsViewControl
+
+        group: "[Skin]"
+        key: "show_settings"
+    }
+    Mixxx.ControlProxy {
         id: recordingStatusControl
 
         group: "[Recording]"
@@ -67,6 +73,7 @@ Item {
                 const opening = libraryViewControl.value <= 0;
                 effectsViewControl.value = 0;
                 samplesViewControl.value = 0;
+                settingsViewControl.value = 0;
                 libraryViewControl.value = opening ? 1 : 0;
             }
         }
@@ -81,6 +88,7 @@ Item {
                 const opening = effectsViewControl.value <= 0;
                 libraryViewControl.value = 0;
                 samplesViewControl.value = 0;
+                settingsViewControl.value = 0;
                 effectsViewControl.value = opening ? 1 : 0;
             }
         }
@@ -95,6 +103,7 @@ Item {
                 const opening = samplesViewControl.value <= 0;
                 libraryViewControl.value = 0;
                 effectsViewControl.value = 0;
+                settingsViewControl.value = 0;
                 samplesViewControl.value = opening ? 1 : 0;
             }
         }
@@ -147,6 +156,21 @@ Item {
                     text: Math.round(Mixxx.Battery.percentage) + "%"
                     verticalAlignment: Text.AlignVCenter
                 }
+            }
+        }
+        Controls.NavigationButton {
+            active: settingsViewControl.value > 0
+            height: parent.height
+            iconSource: ""
+            label: qsTr("Settings")
+            width: 108
+
+            onTriggered: {
+                const opening = settingsViewControl.value <= 0;
+                libraryViewControl.value = 0;
+                effectsViewControl.value = 0;
+                samplesViewControl.value = 0;
+                settingsViewControl.value = opening ? 1 : 0;
             }
         }
         Controls.NavigationButton {

@@ -398,6 +398,14 @@ highlight their top/bottom edges with the deck accent.
   feedback. Selection and toggling must require no hover, right click, or mouse
   wheel.
 
+## Vinyl Settings
+
+Settings opens below the persistent header through core-owned
+`[Skin],show_settings`. It presents one touch panel per deck with 48-pixel
+targets for `vinylcontrol_enabled`, `vinylcontrol_mode` (`ABS`, `REL`, `CONST`),
+and `vinylcontrol_cueing` (`OFF`, `ONE`, `HOT`). These controls bind directly to
+existing deck ControlObjects, keeping controller and engine behavior shared.
+
 ## Architecture Constraints
 
 - Read and follow `docs/architecture.md` before implementation.

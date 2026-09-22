@@ -3,6 +3,7 @@ import "Effects" as Effects
 import "Library" as Library
 import "Performance" as Performance
 import "Samples" as Samples
+import "Settings" as Settings
 import "Theme"
 import Mixxx 1.0 as Mixxx
 import QtQuick
@@ -95,6 +96,12 @@ Item {
         group: "[Skin]"
         key: "show_samplers"
     }
+    Mixxx.ControlProxy {
+        id: settingsViewControl
+
+        group: "[Skin]"
+        key: "show_settings"
+    }
     Column {
         anchors.fill: parent
         spacing: 0
@@ -115,7 +122,8 @@ Item {
                 anchors.fill: parent
                 currentIndex: libraryViewControl.value > 0 ? 1 :
                     effectsViewControl.value > 0 ? 2 :
-                    samplesViewControl.value > 0 ? 3 : 0
+                    samplesViewControl.value > 0 ? 3 :
+                    settingsViewControl.value > 0 ? 4 : 0
 
                 Performance.PerformanceView {
                     splitX: root.deckSplitX
@@ -126,6 +134,8 @@ Item {
                 Effects.EffectRackView {}
 
                 Samples.SampleRackView {}
+
+                Settings.SettingsView {}
             }
         }
     }

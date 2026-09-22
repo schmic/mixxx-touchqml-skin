@@ -407,6 +407,9 @@ The current components are:
   in QML application mode.
 - `EffectRackView` and `SampleRackView`: empty page placeholders selected by the
   core-owned `[Skin],show_effectrack` and `[Skin],show_samplers` controls.
+- `SettingsView`: selected by core-owned `[Skin],show_settings`; it exposes
+  touch controls for both decks' vinyl-control enable state, tracking mode
+  (`ABS`, `REL`, `CONST`), and relative cueing mode (`OFF`, `ONE`, `HOT`).
 - `TouchTheme`: the fixed layout metrics, touch size, colors, and typography
   shared by the first slice.
 
@@ -439,7 +442,7 @@ Implemented and usable for development:
   deck controls, mixer controls, waveforms, overview/spinny/cover support, and
   the embedded legacy library.
 - TouchQML has a persistent navigation/deck-status header, replaceable
-  Performance/Browse/Touch FX/Samples page host, fixed-height two-deck overview,
+  Performance/Browse/Touch FX/Samples/Settings page host, fixed-height two-deck overview,
   adaptive stacked scrolling waveforms, two touch-operated eight-hotcue strips,
   per-deck standard and Quick Effect buttons with hold selectors, centralized
   touch/theme metrics, controller-mappable view controls, a standard fixed
